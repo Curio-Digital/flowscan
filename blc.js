@@ -54,11 +54,15 @@ $(document).ready(function () {
 
     function highlightBrokenLink(element, index) {
       var brokenLinkId = "broken-link-" + index;
+      var elText = $(element).text();
+      if (elText === "") {
+        elText = "Empty link";
+      }
       $(element)
         .attr("id", brokenLinkId)
         .css("border", "2px solid red")
         .css("background-color", "rgba(255, 0, 0, 0.4)");
-      brokenLinks.push({ text: $(element).text(), id: brokenLinkId });
+      brokenLinks.push({ text: elText, id: brokenLinkId });
       updateLinkList();
     }
 
