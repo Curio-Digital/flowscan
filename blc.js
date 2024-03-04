@@ -24,7 +24,7 @@ function toggleHighlightBrokenLink(id) {
 function highlightBrokenLink(element, index) {
   var brokenLinkId = "broken-link-" + index;
   var elText = $(element).text();
-  if (elText === "") {
+  if (elText === "" || elText === undefined) {
     elText = "Empty link";
   }
   $(element)
@@ -44,10 +44,6 @@ function createItem(id, name, type) {
 
   if (nameText.length > 40) {
     nameText = nameText.substring(0, 40) + "...";
-  }
-
-  if (nameText.length === 0) {
-    nameText = "Empty link";
   }
 
   switch (type) {
@@ -233,6 +229,7 @@ $(document).ready(function () {
   bottom: 6px;
 }
 #broken-links-box {
+font-family: 'Inter', sans-serif;
 position: fixed;
 bottom: ${additionalBottomSpace + 110}px;
 left: 18px;
@@ -319,7 +316,7 @@ gap: 16px;
 .blc-item h5 {
 margin: 0;
 font-size: 12.5px;
-font-weight: 600;
+font-weight: 700;
 line-height: 1.25;
 color: #F5F5F5;
 }
