@@ -262,6 +262,8 @@ margin: 0;
 font-size: 12px;
 font-weight: 500;
 line-height: 1.33;
+position: relative;
+top: 1px;
 }
 .blc-icon {
 width: 20px;
