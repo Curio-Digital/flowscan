@@ -267,10 +267,8 @@ gap: 8px;
 .blc-title h4 {
 margin: 0;
 font-size: 12px;
-font-weight: 500;
+font-weight: 600;
 line-height: 1.33;
-position: relative;
-top: 1px;
 }
 .blc-icon {
 width: 20px;
