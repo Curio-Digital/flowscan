@@ -38,15 +38,25 @@ function highlightBrokenLink(element, index) {
 function createItem(id, name, type) {
   let icon = "";
   let title = "";
+  let nameText = name;
   let desc = "";
   let clickFunction = "";
+
+  if (nameText.length > 40) {
+    nameText = nameText.substring(0, 40) + "...";
+  }
+
+  if (nameText.length === 0) {
+    nameText = "Empty link";
+  }
+
   switch (type) {
     case "link":
       icon = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M9.70504 10.4121L12.6465 13.3536L13.3536 12.6465L1.35359 0.646454L0.646484 1.35356L3.38813 4.09521C2.39358 4.7612 1.59323 5.69433 1.08968 6.79149C1.02891 6.92389 1.02891 7.07621 1.08968 7.20862C2.11619 9.44513 4.37601 11 7.00004 11C7.96543 11 8.88153 10.7896 9.70504 10.4121ZM8.94077 9.64784L4.11155 4.81862C3.25768 5.34657 2.55891 6.10169 2.09965 7.00004C3.01052 8.78174 4.8635 10 7.00004 10C7.68311 10 8.33719 9.87549 8.94077 9.64784Z" fill="currentColor"/>
           <path d="M12.9104 7.20853C12.5777 7.9335 12.1154 8.58685 11.5531 9.13884L10.8461 8.43181C11.2703 8.01682 11.6276 7.53367 11.9005 6.99997C10.9896 5.21828 9.13663 4.00001 7.00008 4.00001C6.81177 4.00001 6.62565 4.00947 6.4422 4.02795L5.5717 3.15746C6.0313 3.05439 6.50932 3.00001 7.00008 3.00001C9.62411 3.00001 11.8839 4.55488 12.9104 6.7914C12.9712 6.9238 12.9712 7.07612 12.9104 7.20853Z" fill="currentColor"/>
           </svg>`;
-      title = `${name} is missing link`;
+      title = `${nameText} is missing link`;
       desc = "Set link in Editor or Designer";
       clickFunction = `toggleHighlightBrokenLink('${id}')`;
       break;
