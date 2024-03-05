@@ -18,6 +18,7 @@ class BrokenLinkChecker {
         .html(
           `
         #blc-fab {
+  font-family: 'Inter', sans-serif;
   position: fixed;
   width: 80px;
   height: 80px;
@@ -39,6 +40,23 @@ bottom: ${additionalBottomSpace + 18}px;
 .blc-fab-icon {
   position: relative;
   bottom: 6px;
+}
+#blc-fab-count {
+  user-select: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #CB3535;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  right: -5px;
+  font-size: 11.5px;
+  line-height: 16px;
+  text-align: center;
 }
 #blc {
 font-family: 'Inter', sans-serif;
@@ -185,6 +203,7 @@ cursor: pointer;
 
   addIssue(name, type, element) {
     const issueId = `issue-${++this.issueIdCounter}`;
+    this.issues;
     if (element !== undefined) {
       this.issues.push({
         id: issueId,
@@ -195,6 +214,7 @@ cursor: pointer;
     } else {
       this.issues.push({ id: issueId, text: name, type: type });
     }
+    this.updateIssueCount();
     this.#createItem(name, type, issueId);
   }
 
@@ -202,17 +222,20 @@ cursor: pointer;
     let issueId = `issue-${id}`;
     this.issues = this.issues.filter((issue) => issue.id !== issueId);
     $(`[data-issue-id="${issueId}"]`).remove();
+    this.updateIssueCount();
   }
 
   removeIssueByLiteralId(id) {
     let issueId = id;
     this.issues = this.issues.filter((issue) => issue.id !== issueId);
     $(`[data-issue-id="${issueId}"]`).remove();
+    this.updateIssueCount();
   }
 
   clearAllIssues() {
     this.issues = [];
     $("#blc-issues-list").empty();
+    this.updateIssueCount();
     this.removeAllHighlightedBrokenLinks();
   }
 
@@ -250,6 +273,10 @@ cursor: pointer;
   removeAllHighlightedBrokenLinks() {
     $(".blc-item-icon.active").removeClass("active");
     $("[data-page-issue]").css("border", "").css("background-color", "");
+  }
+
+  updateIssueCount() {
+    $("#blc-fab-count").text(this.issues.length);
   }
 
   checkMetaTags() {
@@ -411,6 +438,9 @@ cursor: pointer;
         <circle cx="22.1175" cy="3.92275" r="1.58035" fill="#161616"/>
         <circle cx="62.8552" cy="3.92275" r="1.58035" fill="#161616"/>
         </svg>
+      </div>
+      <div id="blc-fab-count">
+        ${this.issues.length}
       </div>
     </div>`;
     if (isEditorMode) {
