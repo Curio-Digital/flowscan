@@ -213,7 +213,7 @@ cursor: pointer;
   clearAllIssues() {
     this.issues = [];
     $("#blc-issues-list").empty();
-    this.removeAllHighlightedBrokenLink();
+    this.removeAllHighlightedBrokenLinks();
   }
 
   reloadIssues() {
@@ -247,7 +247,7 @@ cursor: pointer;
     }
   }
 
-  removeAllHighlightedBrokenLink() {
+  removeAllHighlightedBrokenLinks() {
     $(".blc-item-icon.active").removeClass("active");
     $("[data-page-issue]").css("border", "").css("background-color", "");
   }
@@ -443,6 +443,10 @@ cursor: pointer;
   }
 
   init() {
+    if (!window.location.host.includes("webflow.io")) {
+      return;
+    }
+
     const isEditorMode =
       new URLSearchParams(window.location.search).get("edit") === "1";
     const delayTime = isEditorMode ? 6000 : 0;
@@ -483,13 +487,6 @@ cursor: pointer;
     }
 
     setTimeout(() => {
-      if (!window.location.host.includes("webflow.io")) {
-        console.info(
-          "Broken Links Checker is only available on staging or Editor."
-        );
-        return;
-      }
-
       let baseSelector = isEditorMode ? ".w-editor-edit-fade-in " : "";
       let selector =
         baseSelector + "a:visible, " + baseSelector + "button:visible";
