@@ -4,6 +4,8 @@ class BrokenLinkChecker {
     this.issueIdCounter = 0;
     this.ignoreFinsweetAttributes = true;
     this.ignoreCtaAttributes = true;
+    this.clickedHighlights = {};
+    this.hoveredIssue = null;
   }
 
   #initCss(isEditorMode) {
@@ -20,11 +22,11 @@ class BrokenLinkChecker {
         #blc-fab {
   font-family: 'Inter', sans-serif;
   position: fixed;
-  width: 80px;
-  height: 80px;
+  width: 56px;
+  height: 56px;
 bottom: ${additionalBottomSpace + 18}px;
   left: 18px;
-  background-color: #6A65FD;
+  background-color: #1E1E1E;
   border-radius: 50%;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
   display: flex;
@@ -38,13 +40,14 @@ bottom: ${additionalBottomSpace + 18}px;
   display: flex;
 }
 .blc-fab-icon {
-  position: relative;
-  bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #blc-fab-count {
   user-select: none;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background-color: #CB3535;
   color: white;
@@ -52,23 +55,24 @@ bottom: ${additionalBottomSpace + 18}px;
   align-items: center;
   justify-content: center;
   position: absolute;
-  top: 0;
-  right: -5px;
-  font-size: 11.5px;
-  line-height: 16px;
+  top: 0px;
+  right: -4px;
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: -0.01em;
   text-align: center;
 }
 #blc {
 font-family: 'Inter', sans-serif;
 position: fixed;
-bottom: ${additionalBottomSpace + 110}px;
+bottom: ${additionalBottomSpace + 86}px;
 left: 18px;
 background-color: #1E1E1E;
 color: #F5F5F5;
 border-radius: 4px;
 max-height: 400px;
 height: 100%;
-min-width: 260px;
+min-width: 300px;
 z-index: 1000;
 box-shadow: 0px 1px 3px -1px rgba(0,0,0,0.34), 0px 5px 10px -2px rgba(0,0,0,0.32);
 display: none;
@@ -102,8 +106,8 @@ font-weight: 600;
 line-height: 1.33;
 }
 .blc-icon {
-width: 20px;
-height: 20px;
+width: 24px;
+height: 24px;
 border-radius: 2px;
 background-color: #6A65FD;
 display: flex;
@@ -124,7 +128,7 @@ justify-content: center;
   max-height: 355px;
 }
 #blc-issues-list::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 #blc-issues-list::-webkit-scrollbar-thumb {
   background-color: #6A65FD;
@@ -162,13 +166,12 @@ align-items: center;
 justify-content: center;
 width: 16px;
 height: 16px;
-color: #BDBDBD;
-opacity: 0.4;
+color: #BDBDBD66;
 cursor: pointer;
-transition: opacity 0.3s ease;
+transition: color 0.3s ease;
 }
 .blc-item-icon.active {
-opacity: 1;
+color: #BDBDBD;
 }
 .blc-item-title {
 display: flex;
@@ -218,18 +221,15 @@ cursor: pointer;
     this.#createItem(name, type, issueId);
   }
 
-  removeIssue(id) {
+  removeIssue(id, literal = false) {
     let issueId = `issue-${id}`;
+    if (literal) {
+      issueId = id;
+    }
     this.issues = this.issues.filter((issue) => issue.id !== issueId);
     $(`[data-issue-id="${issueId}"]`).remove();
     this.updateIssueCount();
-  }
-
-  removeIssueByLiteralId(id) {
-    let issueId = id;
-    this.issues = this.issues.filter((issue) => issue.id !== issueId);
-    $(`[data-issue-id="${issueId}"]`).remove();
-    this.updateIssueCount();
+    this.disableHighlightBrokenLink(issueId);
   }
 
   clearAllIssues() {
@@ -255,14 +255,29 @@ cursor: pointer;
     this.reloadIssues();
   }
 
-  toggleHighlightBrokenLink(id) {
+  disableHighlightBrokenLink(id) {
+    delete this.clickedHighlights[id];
+    var blcItem = $(`[data-issue-id="${id}"]`);
+    blcItem.find(".blc-item-icon").removeClass("active");
+    $(`[data-page-issue="${id}"]`)
+      .css("border", "")
+      .css("background-color", "");
+  }
+
+  toggleHighlightBrokenLink(id, persist = false) {
     var blcItem = $(`[data-issue-id="${id}"]`);
     var element = $(`[data-page-issue="${id}"]`);
     var isBlcItemActive = blcItem.find(".blc-item-icon").hasClass("active");
-    if (isBlcItemActive) {
-      blcItem.find(".blc-item-icon").removeClass("active");
-      $(element).css("border", "").css("background-color", "");
-    } else {
+    if (persist) {
+      this.clickedHighlights[id] = !this.clickedHighlights[id];
+    }
+
+    if (isBlcItemActive && (!persist || !this.clickedHighlights[id])) {
+      if (id !== this.hoveredIssue) {
+        blcItem.find(".blc-item-icon").removeClass("active");
+        $(element).css("border", "").css("background-color", "");
+      }
+    } else if (!isBlcItemActive || (persist && this.clickedHighlights[id])) {
       blcItem.find(".blc-item-icon").addClass("active");
       $(element)
         .css("border", "2px solid red")
@@ -345,20 +360,19 @@ cursor: pointer;
 
     switch (type) {
       case "link":
-        icon = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M9.70504 10.4121L12.6465 13.3536L13.3536 12.6465L1.35359 0.646454L0.646484 1.35356L3.38813 4.09521C2.39358 4.7612 1.59323 5.69433 1.08968 6.79149C1.02891 6.92389 1.02891 7.07621 1.08968 7.20862C2.11619 9.44513 4.37601 11 7.00004 11C7.96543 11 8.88153 10.7896 9.70504 10.4121ZM8.94077 9.64784L4.11155 4.81862C3.25768 5.34657 2.55891 6.10169 2.09965 7.00004C3.01052 8.78174 4.8635 10 7.00004 10C7.68311 10 8.33719 9.87549 8.94077 9.64784Z" fill="currentColor"/>
-          <path d="M12.9104 7.20853C12.5777 7.9335 12.1154 8.58685 11.5531 9.13884L10.8461 8.43181C11.2703 8.01682 11.6276 7.53367 11.9005 6.99997C10.9896 5.21828 9.13663 4.00001 7.00008 4.00001C6.81177 4.00001 6.62565 4.00947 6.4422 4.02795L5.5717 3.15746C6.0313 3.05439 6.50932 3.00001 7.00008 3.00001C9.62411 3.00001 11.8839 4.55488 12.9104 6.7914C12.9712 6.9238 12.9712 7.07612 12.9104 7.20853Z" fill="currentColor"/>
-          </svg>`;
+        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
+        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
+        </svg>
+        `;
         title = `${nameText} is missing link`;
         desc = "Set link in Editor or Designer";
-        this.toggleHighlightBrokenLink(id);
         break;
       case "meta":
         icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
 <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
 </svg>
-
 `;
         title = nameText;
         desc = "Update in Page Settings";
@@ -375,7 +389,7 @@ cursor: pointer;
         <h5>${title}</h5>
         <p>${desc}</p>
       </div>
-      <div class="blc-item-icon active">
+      <div class="blc-item-icon">
         ${icon}
       </div> 
     </div>`;
@@ -385,9 +399,9 @@ cursor: pointer;
     const newItem = $(`[data-issue-id="${id}"]`);
     newItem.find(".blc-item-icon").on("click", () => {
       if (type === "link") {
-        this.toggleHighlightBrokenLink(id);
+        this.removeIssue(id, true);
       } else if (type === "meta") {
-        this.removeIssueByLiteralId(id);
+        this.removeIssue(id, true);
       }
     });
   }
@@ -401,12 +415,9 @@ cursor: pointer;
         <div class='blc-title-bar'>
           <div class='blc-title'>
             <div class='blc-icon'>
-            <svg width="20" height="4" viewBox="0 0 20 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 0.500015L20 1.76118C20 2.72058 19.4207 3.50001 18.7076 3.50001L13.5238 3.50001C12.8107 3.50001 12.2313 2.72058 12.2313 1.76118L12.2313 0.500015L20 0.500015Z" fill="white"/>
-            <path d="M6.6292 3.49866L8.38254e-05 3.49866L8.39233e-05 0.500015L7.92163 0.500015L7.92163 1.75983C7.92163 2.72058 7.3423 3.49866 6.6292 3.49866Z" fill="white"/>
-            <ellipse cx="6.47134" cy="1.91519" rx="0.46646" ry="0.624327" fill="#161616"/>
-            <ellipse cx="18.4955" cy="1.91519" rx="0.46646" ry="0.624327" fill="#161616"/>
-            </svg>
+              <svg width="6" height="16" viewBox="0 0 6 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5.17868 15.625H0.821533V12.3571H5.17868V15.625ZM4.63403 10.1786H1.36618L0.821533 0.375H5.17868L4.63403 10.1786Z" fill="#1E1E1E"/>
+              </svg>
             </div>
             <h4>
             Curio Page Audit
@@ -432,12 +443,9 @@ cursor: pointer;
     let fab = `
     <div id="blc-fab" class="active">
       <div class="blc-fab-icon">
-        <svg width="68" height="8" viewBox="0 0 68 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M67.9524 0.340454L67.9524 3.53281C67.9524 5.96134 65.9896 7.9343 63.5737 7.9343L46.0112 7.9343C43.5952 7.9343 41.6325 5.96134 41.6325 3.53281L41.6325 0.340453L67.9524 0.340454Z" fill="white"/>
-        <path d="M22.6523 7.93088L0.19313 7.93088L0.19313 0.340453L27.031 0.340454L27.031 3.52939C27.031 5.96134 25.0683 7.93088 22.6523 7.93088Z" fill="white"/>
-        <circle cx="22.1175" cy="3.92275" r="1.58035" fill="#161616"/>
-        <circle cx="62.8552" cy="3.92275" r="1.58035" fill="#161616"/>
-        </svg>
+      <svg width="10" height="34" viewBox="0 0 10 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9.75 33.625H0.25V26.5H9.75V33.625ZM8.5625 21.75H1.4375L0.25 0.375H9.75L8.5625 21.75Z" fill="#676CF8"/>
+      </svg>
       </div>
       <div id="blc-fab-count">
         ${this.issues.length}
@@ -451,6 +459,7 @@ cursor: pointer;
   }
 
   #bindEvents() {
+    const self = this;
     $(document).on("click", ".blc-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
@@ -465,6 +474,29 @@ cursor: pointer;
         },
         500
       );
+      self.toggleHighlightBrokenLink(issueId, true);
+    });
+
+    $(document).on("mouseenter", ".blc-item-title", function () {
+      const issueId = $(this).parent().data("issue-id");
+      const type = $(this).parent().data("issue-type");
+      if (type === "link") {
+        self.hoveredIssue = issueId;
+        if (!self.clickedHighlights[issueId]) {
+          self.toggleHighlightBrokenLink(issueId);
+        }
+      }
+    });
+
+    $(document).on("mouseleave", ".blc-item-title", function () {
+      const issueId = $(this).parent().data("issue-id");
+      const type = $(this).parent().data("issue-type");
+      if (type === "link") {
+        self.hoveredIssue = null;
+        if (!self.clickedHighlights[issueId]) {
+          self.toggleHighlightBrokenLink(issueId);
+        }
+      }
     });
 
     $(document).on("click", "#blc-close", function () {
