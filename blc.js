@@ -423,6 +423,10 @@ cursor: pointer;
   #bindEvents() {
     $(document).on("click", ".blc-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
+      const type = $(this).parent().data("issue-type");
+      if (type !== "link") {
+        return;
+      }
       $("html, body").animate(
         {
           scrollTop:
