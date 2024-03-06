@@ -1,11 +1,48 @@
 class BrokenLinkChecker {
   constructor() {
     this.issues = [];
+    this.issueStates = this.loadIssueStates();
     this.issueIdCounter = 0;
-    this.ignoreFinsweetAttributes = true;
-    this.ignoreCtaAttributes = true;
+    this.ignoreFinsweetAttributes =
+      localStorage.getItem("blcIgnoreFinsweetAttributes") !== "false";
+    this.ignoreCtaAttributes =
+      localStorage.getItem("blcIgnoreCtatAttributes") !== "false";
     this.clickedHighlights = {};
     this.hoveredIssue = null;
+  }
+
+  loadIssueStates() {
+    const storedStates = localStorage.getItem("blcIssueStates");
+    return storedStates ? JSON.parse(storedStates) : {};
+  }
+
+  saveIssueStates() {
+    localStorage.setItem("blcIssueStates", JSON.stringify(this.issueStates));
+  }
+
+  clearLocalIssueStates() {
+    localStorage.removeItem("blcIssueStates");
+    this.issueStates = {};
+  }
+
+  getIssueIdentifier(element, type) {
+    if (type === "link") {
+      const text = $(element)
+        .text()
+        .trim()
+        .replace(/\s/g, "-")
+        .replace(/[^a-zA-Z0-9-]/g, "");
+      const classes = $(element).attr("class");
+      const linkClass = classes
+        ? classes.split(" ")[0]
+        : $(element).prop("tagName").toLowerCase();
+      const index = $(
+        `.${linkClass}:contains('${$(element).text().trim()}')`
+      ).index(element);
+
+      return `link-${linkClass}-${text}-${index}`;
+    }
+    return "unknown";
   }
 
   #initCss(isEditorMode) {
@@ -115,7 +152,13 @@ align-items: center;
 justify-content: center;
 flex-direction: row;
 }
-.blc-close {
+.blc-title-icons {
+display: flex;
+align-items: center;
+justify-content: flex-end;
+gap: 4px;
+}
+.blc-title-icon {
 cursor: pointer;
 width: 24px;
 height: 24px;
@@ -193,101 +236,117 @@ cursor: pointer;
     $("#blc").removeClass("visible");
   }
 
-  getIssue(id) {
-    const issueId = `issue-${id}`;
+  getIssue(issueId) {
     return this.issues.find((issue) => issue.id === issueId);
   }
 
   addBrokenLink(element) {
     const name = $(element).text() || "Empty link";
-    $(element).attr("data-page-issue", `issue-${this.issueIdCounter + 1}`);
+    const identifier = this.getIssueIdentifier(element, "link");
+    $(element).attr("data-page-issue", `${identifier}`);
     this.addIssue(name, "link", $(element)[0]);
   }
 
-  addIssue(name, type, element) {
-    const issueId = `issue-${++this.issueIdCounter}`;
-    this.issues;
-    if (element !== undefined) {
+  addIssue(name, type, element, id) {
+    let identifier;
+    if (!id) {
+      identifier = this.getIssueIdentifier(element, type);
+    } else {
+      identifier = id;
+    }
+    if (!this.issueStates[identifier]) {
+      this.issueStates[identifier] = { removed: false, highlighted: false };
+    }
+
+    if (!this.issueStates[identifier].removed) {
       this.issues.push({
-        id: issueId,
+        id: identifier,
         text: name,
         type: type,
         element: element,
       });
-    } else {
-      this.issues.push({ id: issueId, text: name, type: type });
+      this.#createItem(name, type, identifier);
     }
+
+    if (this.issueStates[identifier].highlighted) {
+      this.highlightBrokenLink(identifier, true);
+      this.clickedHighlights[identifier] = true;
+    }
+    this.saveIssueStates();
     this.updateIssueCount();
-    this.#createItem(name, type, issueId);
   }
 
-  removeIssue(id, literal = false) {
-    let issueId = `issue-${id}`;
-    if (literal) {
-      issueId = id;
-    }
-    this.issues = this.issues.filter((issue) => issue.id !== issueId);
-    $(`[data-issue-id="${issueId}"]`).remove();
+  removeIssue(identifier) {
+    this.issueStates[identifier].removed = true;
+    this.highlightBrokenLink(identifier, false);
+    this.saveIssueStates();
+    this.issues = this.issues.filter((issue) => issue.id !== identifier);
+    $(`[data-issue-id="${identifier}"]`).remove();
     this.updateIssueCount();
-    this.disableHighlightBrokenLink(issueId);
   }
 
-  clearAllIssues() {
+  removeAllIssues() {
     this.issues = [];
     $("#blc-issues-list").empty();
     this.updateIssueCount();
-    this.removeAllHighlightedBrokenLinks();
   }
 
   reloadIssues() {
-    this.clearAllIssues();
+    this.removeAllIssues();
     this.checkMetaTags();
-    this.checkPageLinks("a:visible, button:visible");
+    this.checkPageLinks();
+  }
+
+  refreshStoredIssues() {
+    var confirmed = window.confirm(
+      "Do you really want to refresh the issues? This will clear all the issues that were ignored."
+    );
+    if (!confirmed) return;
+
+    $("#blc-issues-list").empty();
+    this.clearLocalIssueStates();
+    this.checkMetaTags();
+    this.checkPageLinks();
   }
 
   setIgnoreFinsweetAttributes(value) {
     this.ignoreFinsweetAttributes = value;
+    localStorage.setItem("blcIgnoreFinsweetAttributes", value);
     this.reloadIssues();
   }
 
   setIgnoreCtaAttributes(value) {
     this.ignoreCtaAttributes = value;
+    localStorage.setItem("blcIgnoreCtatAttributes", value);
     this.reloadIssues();
   }
 
-  disableHighlightBrokenLink(id) {
-    delete this.clickedHighlights[id];
-    var blcItem = $(`[data-issue-id="${id}"]`);
-    blcItem.find(".blc-item-icon").removeClass("active");
-    $(`[data-page-issue="${id}"]`)
-      .css("border", "")
-      .css("background-color", "");
-  }
-
-  toggleHighlightBrokenLink(id, persist = false) {
-    var blcItem = $(`[data-issue-id="${id}"]`);
-    var element = $(`[data-page-issue="${id}"]`);
-    var isBlcItemActive = blcItem.find(".blc-item-icon").hasClass("active");
-    if (persist) {
-      this.clickedHighlights[id] = !this.clickedHighlights[id];
-    }
-
-    if (isBlcItemActive && (!persist || !this.clickedHighlights[id])) {
-      if (id !== this.hoveredIssue) {
-        blcItem.find(".blc-item-icon").removeClass("active");
-        $(element).css("border", "").css("background-color", "");
-      }
-    } else if (!isBlcItemActive || (persist && this.clickedHighlights[id])) {
+  highlightBrokenLink(identifier, on) {
+    if (on) {
+      this.issueStates[identifier].highlighted = true;
+      this.saveIssueStates();
+      var blcItem = $(`[data-issue-id="${identifier}"]`);
+      var element = $(`[data-page-issue="${identifier}"]`);
+      $(blcItem).attr("data-issue-highlighted", "true");
       blcItem.find(".blc-item-icon").addClass("active");
       $(element)
         .css("border", "2px solid red")
         .css("background-color", "rgba(255, 0, 0, 0.4)");
+    } else {
+      this.issueStates[identifier].highlighted = false;
+      this.saveIssueStates();
+      var blcItem = $(`[data-issue-id="${identifier}"]`);
+      var element = $(`[data-page-issue="${identifier}"]`);
+      $(blcItem).attr("data-issue-highlighted", "false");
+      blcItem.find(".blc-item-icon").removeClass("active");
+      $(element).css("border", "").css("background-color", "");
     }
   }
 
   removeAllHighlightedBrokenLinks() {
-    $(".blc-item-icon.active").removeClass("active");
-    $("[data-page-issue]").css("border", "").css("background-color", "");
+    this.issues.forEach((issue) => {
+      this.highlightBrokenLink(issue.id, false);
+    });
   }
 
   updateIssueCount() {
@@ -295,22 +354,37 @@ cursor: pointer;
   }
 
   checkMetaTags() {
-    let metaTitle = document.title;
+    let metaTitle = $('meta[property="og:title"]').attr("content");
     let metaDescription = $('meta[name="description"]').attr("content");
     let openGraphImage = $('meta[property="og:image"]').attr("content");
 
     if (!metaTitle || metaTitle === "") {
-      this.addIssue("Missing meta title", "meta");
+      this.addIssue("Missing meta title", "meta", null, "meta-title");
     }
     if (!metaDescription) {
-      this.addIssue("Missing meta description", "meta");
+      this.addIssue(
+        "Missing meta description",
+        "meta",
+        null,
+        "meta-description"
+      );
     }
     if (!openGraphImage) {
-      this.addIssue("Missing Open Graph image", "meta");
+      this.addIssue(
+        "Missing Open Graph image",
+        "meta",
+        null,
+        "open-graph-image"
+      );
     }
   }
 
-  checkPageLinks(selector) {
+  checkPageLinks() {
+    const isEditorMode =
+      new URLSearchParams(window.location.search).get("edit") === "1";
+    let baseSelector = isEditorMode ? ".w-editor-edit-fade-in " : "";
+    let selector =
+      baseSelector + "a:visible, " + baseSelector + "button:visible";
     $(selector)
       .filter((index, element) => {
         for (let i = 0; i < element.attributes.length; i++) {
@@ -352,11 +426,13 @@ cursor: pointer;
       });
   }
 
-  #createItem(name, type, id) {
+  #createItem(name, type, identifier) {
     let icon = "";
     let title = "";
     let nameText = name.length > 40 ? name.substring(0, 40) + "..." : name;
     let desc = "";
+
+    let isIssueHighlighted = this.issueStates[identifier].highlighted;
 
     switch (type) {
       case "link":
@@ -384,7 +460,7 @@ cursor: pointer;
     }
 
     let itemHTML = `
-    <div class="blc-item" data-issue-id="${id}" data-issue-type="${type}">
+    <div class="blc-item" data-issue-id="${identifier}" data-issue-type="${type}" data-issue-highlighted="${isIssueHighlighted}">
       <div class="blc-item-title">
         <h5>${title}</h5>
         <p>${desc}</p>
@@ -396,12 +472,12 @@ cursor: pointer;
 
     $("#blc-issues-list").append(itemHTML);
 
-    const newItem = $(`[data-issue-id="${id}"]`);
+    const newItem = $(`[data-issue-id="${identifier}"]`);
     newItem.find(".blc-item-icon").on("click", () => {
       if (type === "link") {
-        this.removeIssue(id, true);
+        this.removeIssue(identifier, true);
       } else if (type === "meta") {
-        this.removeIssue(id, true);
+        this.removeIssue(identifier, true);
       }
     });
   }
@@ -423,10 +499,18 @@ cursor: pointer;
             Curio Page Audit
             </h4>
           </div>
-          <div class='blc-close' id="blc-close">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.70714 8.00001L12.3536 4.35356L11.6465 3.64645L8.00004 7.2929L4.35359 3.64645L3.64648 4.35356L7.29293 8.00001L3.64648 11.6465L4.35359 12.3536L8.00004 8.70711L11.6465 12.3536L12.3536 11.6465L8.70714 8.00001Z" fill="#BDBDBD"/>
-            </svg>
+          <div class='blc-title-icons'>
+            <div class='blc-title-icon' id="blc-refresh">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.5 8C13.5 4.96243 11.0376 2.5 8 2.5C6.76241 2.5 5.61898 2.90936 4.69971 3.59985L5.30029 4.39942C6.05234 3.83453 6.98638 3.5 8 3.5C10.4853 3.5 12.5 5.51472 12.5 8V8.79298L10.8535 7.14649L10.1464 7.8536L13 10.7072L15.8535 7.8536L15.1464 7.14649L13.5 8.7929V8Z" fill="#BDBDBD"/>
+              <path d="M3.5 7.2071L5.14641 8.85351L5.85352 8.1464L2.99996 5.29285L0.146409 8.1464L0.853516 8.85351L2.5 7.20702V8C2.5 11.0376 4.96243 13.5 8 13.5C9.23759 13.5 10.381 13.0906 11.3003 12.4001L10.6997 11.6006C9.94766 12.1655 9.01362 12.5 8 12.5C5.51472 12.5 3.5 10.4853 3.5 8V7.2071Z" fill="#BDBDBD"/>
+              </svg>
+            </div>
+            <div class='blc-title-icon' id="blc-close">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M8.70714 8.00001L12.3536 4.35356L11.6465 3.64645L8.00004 7.2929L4.35359 3.64645L3.64648 4.35356L7.29293 8.00001L3.64648 11.6465L4.35359 12.3536L8.00004 8.70711L11.6465 12.3536L12.3536 11.6465L8.70714 8.00001Z" fill="#BDBDBD"/>
+              </svg>
+            </div>
           </div>
         </div>
         <div id='blc-issues-list'>
@@ -474,7 +558,9 @@ cursor: pointer;
         },
         500
       );
-      self.toggleHighlightBrokenLink(issueId, true);
+      const shouldBeHighlighted = !self.clickedHighlights[issueId];
+      self.clickedHighlights[issueId] = shouldBeHighlighted;
+      self.highlightBrokenLink(issueId, shouldBeHighlighted);
     });
 
     $(document).on("mouseenter", ".blc-item-title", function () {
@@ -483,7 +569,7 @@ cursor: pointer;
       if (type === "link") {
         self.hoveredIssue = issueId;
         if (!self.clickedHighlights[issueId]) {
-          self.toggleHighlightBrokenLink(issueId);
+          self.highlightBrokenLink(issueId, true);
         }
       }
     });
@@ -494,9 +580,13 @@ cursor: pointer;
       if (type === "link") {
         self.hoveredIssue = null;
         if (!self.clickedHighlights[issueId]) {
-          self.toggleHighlightBrokenLink(issueId);
+          self.highlightBrokenLink(issueId, false);
         }
       }
+    });
+
+    $(document).on("click", "#blc-refresh", function () {
+      self.refreshStoredIssues();
     });
 
     $(document).on("click", "#blc-close", function () {
@@ -522,8 +612,6 @@ cursor: pointer;
         "Broken Links Checker is running in Editor mode. Waiting for 6 seconds to load."
       );
     }
-
-    const localStorage = window.localStorage;
 
     const shouldRun = new URLSearchParams(window.location.search).get("blc");
     if (shouldRun === "0") {
@@ -553,14 +641,10 @@ cursor: pointer;
     }
 
     setTimeout(() => {
-      let baseSelector = isEditorMode ? ".w-editor-edit-fade-in " : "";
-      let selector =
-        baseSelector + "a:visible, " + baseSelector + "button:visible";
-
       this.#createIssuesBox(isEditorMode);
       this.#createFloatingActionButton(isEditorMode);
       this.checkMetaTags();
-      this.checkPageLinks(selector);
+      this.checkPageLinks();
       this.#bindEvents();
       this.#initCss();
     }, delayTime);
