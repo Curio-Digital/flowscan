@@ -1,27 +1,27 @@
-class BrokenLinkChecker {
+class FlowScan {
   constructor() {
     this.issues = [];
     this.issueStates = this.loadIssueStates();
     this.issueIdCounter = 0;
     this.ignoreFinsweetAttributes =
-      localStorage.getItem("blcIgnoreFinsweetAttributes") !== "false";
+      localStorage.getItem("flowsIgnoreFinsweetAttributes") !== "false";
     this.ignoreCtaAttributes =
-      localStorage.getItem("blcIgnoreCtatAttributes") !== "false";
+      localStorage.getItem("flowsIgnoreCtatAttributes") !== "false";
     this.clickedHighlights = {};
     this.hoveredIssue = null;
   }
 
   loadIssueStates() {
-    const storedStates = localStorage.getItem("blcIssueStates");
+    const storedStates = localStorage.getItem("flowsIssueStates");
     return storedStates ? JSON.parse(storedStates) : {};
   }
 
   saveIssueStates() {
-    localStorage.setItem("blcIssueStates", JSON.stringify(this.issueStates));
+    localStorage.setItem("flowsIssueStates", JSON.stringify(this.issueStates));
   }
 
   clearLocalIssueStates() {
-    localStorage.removeItem("blcIssueStates");
+    localStorage.removeItem("flowsIssueStates");
     this.issueStates = {};
   }
 
@@ -56,7 +56,7 @@ class BrokenLinkChecker {
         .prop("type", "text/css")
         .html(
           `
-        #blc-fab {
+        #flows-fab {
   font-family: 'Inter', sans-serif;
   position: fixed;
   width: 56px;
@@ -73,15 +73,15 @@ bottom: ${additionalBottomSpace + 18}px;
   z-index: 1001;
   display: none;
 }
-#blc-fab.active {
+#flows-fab.active {
   display: flex;
 }
-.blc-fab-icon {
+.flows-fab-icon {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-#blc-fab-count {
+#flows-fab-count {
   user-select: none;
   width: 20px;
   height: 20px;
@@ -99,7 +99,7 @@ bottom: ${additionalBottomSpace + 18}px;
   letter-spacing: -0.01em;
   text-align: center;
 }
-#blc {
+#flows {
 font-family: 'Inter', sans-serif;
 position: fixed;
 bottom: ${additionalBottomSpace + 86}px;
@@ -114,13 +114,13 @@ z-index: 1000;
 box-shadow: 0px 1px 3px -1px rgba(0,0,0,0.34), 0px 5px 10px -2px rgba(0,0,0,0.32);
 display: none;
 }
-#blc.visible {
+#flows.visible {
 display: block;
 }
-#blc h4 {
+#flows h4 {
 margin-top: 0;
 }
-.blc-title-bar {
+.flows-title-bar {
 display: flex;
 align-items: center;
 justify-content: space-between;
@@ -129,20 +129,20 @@ flex-direction: row;
 padding: 10px 8px;
 border-bottom: 1px solid rgba(255, 255, 255, 0.13);
 }
-.blc-title {
+.flows-title {
 display: flex;
 align-items: center;
 justify-content: flex-start;
 flex-direction: row;
 gap: 8px;
 }
-.blc-title h4 {
+.flows-title h4 {
 margin: 0;
 font-size: 12px;
 font-weight: 600;
 line-height: 1.33;
 }
-.blc-icon {
+.flows-icon {
 width: 24px;
 height: 24px;
 border-radius: 2px;
@@ -152,13 +152,13 @@ align-items: center;
 justify-content: center;
 flex-direction: row;
 }
-.blc-title-icons {
+.flows-title-icons {
 display: flex;
 align-items: center;
 justify-content: flex-end;
 gap: 4px;
 }
-.blc-title-icon {
+.flows-title-icon {
 cursor: pointer;
 width: 24px;
 height: 24px;
@@ -166,21 +166,21 @@ display: flex;
 align-items: center;
 justify-content: center;
 }
-#blc-issues-list {
+#flows-issues-list {
   overflow: auto;
   max-height: 355px;
 }
-#blc-issues-list::-webkit-scrollbar {
+#flows-issues-list::-webkit-scrollbar {
   width: 4px;
 }
-#blc-issues-list::-webkit-scrollbar-thumb {
+#flows-issues-list::-webkit-scrollbar-thumb {
   background-color: #6A65FD;
   border-radius: 4px;
 }
-#blc-issues-list::-webkit-scrollbar-track {
+#flows-issues-list::-webkit-scrollbar-track {
   background-color: #1E1E1E;
 }
-.blc-item {
+.flows-item {
 padding: 8px;
 border-bottom: 1px solid rgba(255, 255, 255, 0.13);
 border-top: 1px solid rgba(255, 255, 255, 0.13);
@@ -189,21 +189,21 @@ align-items: center;
 justify-content: space-between;
 gap: 16px;
 }
-.blc-item h5 {
+.flows-item h5 {
 margin: 0;
 font-size: 12.5px;
 font-weight: 700;
 line-height: 1.25;
 color: #F5F5F5;
 }
-.blc-item p {
+.flows-item p {
 margin: 0;
 font-size: 11.5px;
 line-height: 16px;
 letter-spacing: -0.01em;
 color: #BDBDBD;
 }
-.blc-item-icon {
+.flows-item-icon {
 display: flex;
 align-items: center;
 justify-content: center;
@@ -213,10 +213,10 @@ color: #BDBDBD66;
 cursor: pointer;
 transition: color 0.3s ease;
 }
-.blc-item-icon.active {
+.flows-item-icon.active {
 color: #BDBDBD;
 }
-.blc-item-title {
+.flows-item-title {
 display: flex;
 align-items: flex-start;
 justify-content: flex-start;
@@ -229,11 +229,11 @@ cursor: pointer;
   }
 
   open() {
-    $("#blc").addClass("visible");
+    $("#flows").addClass("visible");
   }
 
   close() {
-    $("#blc").removeClass("visible");
+    $("#flows").removeClass("visible");
   }
 
   getIssue(issueId) {
@@ -287,7 +287,7 @@ cursor: pointer;
 
   removeAllIssues() {
     this.issues = [];
-    $("#blc-issues-list").empty();
+    $("#flows-issues-list").empty();
     this.updateIssueCount();
   }
 
@@ -303,7 +303,7 @@ cursor: pointer;
     );
     if (!confirmed) return;
 
-    $("#blc-issues-list").empty();
+    $("#flows-issues-list").empty();
     this.clearLocalIssueStates();
     this.checkMetaTags();
     this.checkPageLinks();
@@ -311,13 +311,13 @@ cursor: pointer;
 
   setIgnoreFinsweetAttributes(value) {
     this.ignoreFinsweetAttributes = value;
-    localStorage.setItem("blcIgnoreFinsweetAttributes", value);
+    localStorage.setItem("flowsIgnoreFinsweetAttributes", value);
     this.reloadIssues();
   }
 
   setIgnoreCtaAttributes(value) {
     this.ignoreCtaAttributes = value;
-    localStorage.setItem("blcIgnoreCtatAttributes", value);
+    localStorage.setItem("flowsIgnoreCtatAttributes", value);
     this.reloadIssues();
   }
 
@@ -325,20 +325,20 @@ cursor: pointer;
     if (on) {
       this.issueStates[identifier].highlighted = true;
       this.saveIssueStates();
-      var blcItem = $(`[data-issue-id="${identifier}"]`);
+      var flowsItem = $(`[data-issue-id="${identifier}"]`);
       var element = $(`[data-page-issue="${identifier}"]`);
-      $(blcItem).attr("data-issue-highlighted", "true");
-      blcItem.find(".blc-item-icon").addClass("active");
+      $(flowsItem).attr("data-issue-highlighted", "true");
+      flowsItem.find(".flows-item-icon").addClass("active");
       $(element)
         .css("border", "2px solid red")
         .css("background-color", "rgba(255, 0, 0, 0.4)");
     } else {
       this.issueStates[identifier].highlighted = false;
       this.saveIssueStates();
-      var blcItem = $(`[data-issue-id="${identifier}"]`);
+      var flowsItem = $(`[data-issue-id="${identifier}"]`);
       var element = $(`[data-page-issue="${identifier}"]`);
-      $(blcItem).attr("data-issue-highlighted", "false");
-      blcItem.find(".blc-item-icon").removeClass("active");
+      $(flowsItem).attr("data-issue-highlighted", "false");
+      flowsItem.find(".flows-item-icon").removeClass("active");
       $(element).css("border", "").css("background-color", "");
     }
   }
@@ -350,7 +350,7 @@ cursor: pointer;
   }
 
   updateIssueCount() {
-    $("#blc-fab-count").text(this.issues.length);
+    $("#flows-fab-count").text(this.issues.length);
   }
 
   checkMetaTags() {
@@ -460,20 +460,20 @@ cursor: pointer;
     }
 
     let itemHTML = `
-    <div class="blc-item" data-issue-id="${identifier}" data-issue-type="${type}" data-issue-highlighted="${isIssueHighlighted}">
-      <div class="blc-item-title">
+    <div class="flows-item" data-issue-id="${identifier}" data-issue-type="${type}" data-issue-highlighted="${isIssueHighlighted}">
+      <div class="flows-item-title">
         <h5>${title}</h5>
         <p>${desc}</p>
       </div>
-      <div class="blc-item-icon">
+      <div class="flows-item-icon">
         ${icon}
       </div> 
     </div>`;
 
-    $("#blc-issues-list").append(itemHTML);
+    $("#flows-issues-list").append(itemHTML);
 
     const newItem = $(`[data-issue-id="${identifier}"]`);
-    newItem.find(".blc-item-icon").on("click", () => {
+    newItem.find(".flows-item-icon").on("click", () => {
       if (type === "link") {
         this.removeIssue(identifier, true);
       } else if (type === "meta") {
@@ -487,33 +487,33 @@ cursor: pointer;
   }
 
   #createIssuesBox(isEditorMode) {
-    var box = `<div id="blc">
-        <div class='blc-title-bar'>
-          <div class='blc-title'>
-            <div class='blc-icon'>
+    var box = `<div id="flows">
+        <div class='flows-title-bar'>
+          <div class='flows-title'>
+            <div class='flows-icon'>
               <svg width="6" height="16" viewBox="0 0 6 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5.17868 15.625H0.821533V12.3571H5.17868V15.625ZM4.63403 10.1786H1.36618L0.821533 0.375H5.17868L4.63403 10.1786Z" fill="#1E1E1E"/>
               </svg>
             </div>
             <h4>
-            Curio Page Audit
+            Flow Scan
             </h4>
           </div>
-          <div class='blc-title-icons'>
-            <div class='blc-title-icon' id="blc-refresh">
+          <div class='flows-title-icons'>
+            <div class='flows-title-icon' id="flows-refresh">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M13.5 8C13.5 4.96243 11.0376 2.5 8 2.5C6.76241 2.5 5.61898 2.90936 4.69971 3.59985L5.30029 4.39942C6.05234 3.83453 6.98638 3.5 8 3.5C10.4853 3.5 12.5 5.51472 12.5 8V8.79298L10.8535 7.14649L10.1464 7.8536L13 10.7072L15.8535 7.8536L15.1464 7.14649L13.5 8.7929V8Z" fill="#BDBDBD"/>
               <path d="M3.5 7.2071L5.14641 8.85351L5.85352 8.1464L2.99996 5.29285L0.146409 8.1464L0.853516 8.85351L2.5 7.20702V8C2.5 11.0376 4.96243 13.5 8 13.5C9.23759 13.5 10.381 13.0906 11.3003 12.4001L10.6997 11.6006C9.94766 12.1655 9.01362 12.5 8 12.5C5.51472 12.5 3.5 10.4853 3.5 8V7.2071Z" fill="#BDBDBD"/>
               </svg>
             </div>
-            <div class='blc-title-icon' id="blc-close">
+            <div class='flows-title-icon' id="flows-close">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M8.70714 8.00001L12.3536 4.35356L11.6465 3.64645L8.00004 7.2929L4.35359 3.64645L3.64648 4.35356L7.29293 8.00001L3.64648 11.6465L4.35359 12.3536L8.00004 8.70711L11.6465 12.3536L12.3536 11.6465L8.70714 8.00001Z" fill="#BDBDBD"/>
               </svg>
             </div>
           </div>
         </div>
-        <div id='blc-issues-list'>
+        <div id='flows-issues-list'>
         </div>
       </div>`;
     if (isEditorMode) {
@@ -525,13 +525,13 @@ cursor: pointer;
 
   #createFloatingActionButton(isEditorMode) {
     let fab = `
-    <div id="blc-fab" class="active">
-      <div class="blc-fab-icon">
+    <div id="flows-fab" class="active">
+      <div class="flows-fab-icon">
       <svg width="10" height="34" viewBox="0 0 10 34" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M9.75 33.625H0.25V26.5H9.75V33.625ZM8.5625 21.75H1.4375L0.25 0.375H9.75L8.5625 21.75Z" fill="#676CF8"/>
       </svg>
       </div>
-      <div id="blc-fab-count">
+      <div id="flows-fab-count">
         ${this.issues.length}
       </div>
     </div>`;
@@ -544,7 +544,7 @@ cursor: pointer;
 
   #bindEvents() {
     const self = this;
-    $(document).on("click", ".blc-item-title", function () {
+    $(document).on("click", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
       if (type !== "link") {
@@ -563,7 +563,7 @@ cursor: pointer;
       self.highlightBrokenLink(issueId, shouldBeHighlighted);
     });
 
-    $(document).on("mouseenter", ".blc-item-title", function () {
+    $(document).on("mouseenter", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
       if (type === "link") {
@@ -574,7 +574,7 @@ cursor: pointer;
       }
     });
 
-    $(document).on("mouseleave", ".blc-item-title", function () {
+    $(document).on("mouseleave", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
       if (type === "link") {
@@ -585,16 +585,16 @@ cursor: pointer;
       }
     });
 
-    $(document).on("click", "#blc-refresh", function () {
+    $(document).on("click", "#flows-refresh", function () {
       self.refreshStoredIssues();
     });
 
-    $(document).on("click", "#blc-close", function () {
-      $("#blc").toggleClass("visible");
+    $(document).on("click", "#flows-close", function () {
+      $("#flows").toggleClass("visible");
     });
 
-    $(document).on("click", "#blc-fab", function () {
-      $("#blc").toggleClass("visible");
+    $(document).on("click", "#flows-fab", function () {
+      $("#flows").toggleClass("visible");
     });
   }
 
@@ -609,35 +609,35 @@ cursor: pointer;
 
     if (isEditorMode) {
       console.info(
-        "Broken Links Checker is running in Editor mode. Waiting for 6 seconds to load."
+        "Flow Scan is running in Editor mode. Waiting for 6 seconds to load."
       );
     }
 
-    const shouldRun = new URLSearchParams(window.location.search).get("blc");
+    const shouldRun = new URLSearchParams(window.location.search).get("flows");
     if (shouldRun === "0") {
-      console.info("Broken Links Checker is disabled.");
-      localStorage.setItem("blc", "0");
+      console.info("Flow Scan is disabled.");
+      localStorage.setItem("flows", "0");
       return;
     } else if (shouldRun === "1") {
-      console.info("Broken Links Checker is enabled on all page loads.");
-      localStorage.setItem("blc", "1");
+      console.info("Flow Scan is enabled on all page loads.");
+      localStorage.setItem("flows", "1");
     } else if (shouldRun === "2") {
       console.info(
-        "Broken Links Checker is enabled and running only once. Write blcInstance.init() to run again."
+        "Flow Scan is enabled and running only once. Write flowsInstance.init() to run again."
       );
-      localStorage.setItem("blc", "0");
+      localStorage.setItem("flows", "0");
     }
 
-    if (!shouldRun && localStorage.getItem("blc") === "0") {
-      console.info("Broken Links Checker is disabled.");
+    if (!shouldRun && localStorage.getItem("flows") === "0") {
+      console.info("Flow Scan is disabled.");
       return;
-    } else if (!shouldRun && localStorage.getItem("blc") === "2") {
+    } else if (!shouldRun && localStorage.getItem("flows") === "2") {
       console.info(
-        "Broken Links Checker is enabled and running only once. Write blcInstance.init() to run again."
+        "Flow Scan is enabled and running only once. Write flowsInstance.init() to run again."
       );
-      localStorage.setItem("blc", "0");
-    } else if (!shouldRun && localStorage.getItem("blc") === "1") {
-      console.info("Broken Links Checker is enabled on all page loads.");
+      localStorage.setItem("flows", "0");
+    } else if (!shouldRun && localStorage.getItem("flows") === "1") {
+      console.info("Flow Scan is enabled on all page loads.");
     }
 
     setTimeout(() => {
@@ -650,9 +650,9 @@ cursor: pointer;
     }, delayTime);
   }
 }
-var blcInstance;
+var flowScan;
 
 $(document).ready(function () {
-  blcInstance = new BrokenLinkChecker();
-  blcInstance.init();
+  flowScan = new FlowScan();
+  flowScan.init();
 });
