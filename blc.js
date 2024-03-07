@@ -7,6 +7,8 @@ class FlowScan {
       localStorage.getItem("flowsIgnoreFinsweetAttributes") !== "false";
     this.ignoreCtaAttributes =
       localStorage.getItem("flowsIgnoreCtatAttributes") !== "false";
+    this.ignoreInteractionElements =
+      localStorage.getItem("flowsIgnoreInteractionElements") !== "false";
     this.clickedHighlights = {};
     this.hoveredIssue = null;
   }
@@ -321,6 +323,12 @@ cursor: pointer;
     this.reloadIssues();
   }
 
+  setIgnoreInteractionElements(value) {
+    this.ignoreInteractionElements = value;
+    localStorage.setItem("flowsIgnoreInteractionElements", value);
+    this.reloadIssues();
+  }
+
   highlightBrokenLink(identifier, on) {
     if (on) {
       this.issueStates[identifier].highlighted = true;
@@ -387,6 +395,10 @@ cursor: pointer;
       baseSelector + "a:visible, " + baseSelector + "button:visible";
     $(selector)
       .filter((index, element) => {
+        if ($(element).attr("data-w-id")) {
+          return false;
+        }
+
         for (let i = 0; i < element.attributes.length; i++) {
           if (
             (this.ignoreFinsweetAttributes &&
