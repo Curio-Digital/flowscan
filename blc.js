@@ -625,7 +625,9 @@ cursor: pointer;
       );
     }
 
-    const shouldRun = new URLSearchParams(window.location.search).get("flows");
+    const shouldRun = new URLSearchParams(window.location.search).get(
+      "flowscan"
+    );
     if (shouldRun === "0") {
       console.info("Flow Scan is disabled.");
       localStorage.setItem("flows", "0");
@@ -650,6 +652,11 @@ cursor: pointer;
       localStorage.setItem("flows", "0");
     } else if (!shouldRun && localStorage.getItem("flows") === "1") {
       console.info("Flow Scan is enabled on all page loads.");
+    }
+
+    if (!shouldRun && !localStorage.getItem("flows")) {
+      console.info("Flow Scan is enabled on all page loads.");
+      localStorage.setItem("flows", "1");
     }
 
     setTimeout(() => {
