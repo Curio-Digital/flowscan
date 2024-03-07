@@ -395,7 +395,7 @@ cursor: pointer;
       baseSelector + "a:visible, " + baseSelector + "button:visible";
     $(selector)
       .filter((index, element) => {
-        if ($(element).attr("data-w-id")) {
+        if ($(element).attr("data-w-id") && this.ignoreInteractionElements) {
           return false;
         }
 
