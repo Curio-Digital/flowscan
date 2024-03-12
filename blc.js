@@ -46,6 +46,18 @@ class FlowScan {
       ).index(element);
 
       return `link-${linkClass}-${text}-${index}`;
+    } else if (type === "imageAltText") {
+      const src = $(element).attr("src");
+      let fileName = src.split("/").pop();
+      fileName = fileName.slice(0, 15);
+      return `image-${fileName}`;
+    } else if (type === "imageSize") {
+      const src = $(element).attr("src");
+      let fileName = src.split("/").pop();
+      fileName = fileName.slice(0, 15);
+      return `image-${fileName}`;
+    } else if (type === "loremIpsum") {
+      return "lorem-ipsum";
     }
     return "unknown";
   }
@@ -261,6 +273,21 @@ justify-content: flex-start;
 flex-direction: column;
 cursor: pointer;
 }
+.flows-item-image-preview {
+display: none;
+position: fixed;
+z-index: 10;
+padding: 5px;
+background: #1E1E1E;
+border: 1px solid #6A65FD;
+border-radius: 4px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.flows-item-image-preview img {
+max-width: 200px;
+max-height: 200px;
+}
 `
         )
         .appendTo("head");
@@ -301,6 +328,10 @@ cursor: pointer;
       this.issueStates[identifier] = { removed: false, highlighted: false };
     }
 
+    if (type === "imageAltText" || type === "imageSize") {
+      $(element).attr("data-page-issue", `${identifier}`);
+    }
+
     if (!this.issueStates[identifier].removed) {
       this.issues.push({
         id: identifier,
@@ -337,6 +368,8 @@ cursor: pointer;
     this.removeAllIssues();
     this.checkMetaTags();
     this.checkPageLinks();
+    this.checkImages();
+    this.checkForLoremIpsum();
   }
 
   refreshStoredIssues() {
@@ -349,6 +382,8 @@ cursor: pointer;
     this.clearLocalIssueStates();
     this.checkMetaTags();
     this.checkPageLinks();
+    this.checkImages();
+    this.checkForLoremIpsum();
   }
 
   setIgnoreFinsweetAttributes(value) {
@@ -400,8 +435,10 @@ cursor: pointer;
   toggleAllPersistentHighlights() {
     this.allPersistentHighlights = !this.allPersistentHighlights;
     this.issues.forEach((issue) => {
-      this.highlightBrokenLink(issue.id, this.allPersistentHighlights);
-      this.clickedHighlights[issue.id] = this.allPersistentHighlights;
+      if (issue.type === "link") {
+        this.highlightBrokenLink(issue.id, this.allPersistentHighlights);
+        this.clickedHighlights[issue.id] = this.allPersistentHighlights;
+      }
     });
 
     if (this.allPersistentHighlights) {
@@ -433,6 +470,49 @@ cursor: pointer;
   updateIssueCount() {
     $("#flows-fab-count").text(this.issues.length);
     this.updateEmptyState();
+  }
+
+  checkForLoremIpsum() {
+    const bodyText = document.body.innerText.toLowerCase();
+    if (bodyText.includes("lorem ipsum")) {
+      this.addIssue("Lorem Ipsum detected", "loremIpsum", document.body);
+    }
+  }
+
+  checkImages() {
+    const images = document.querySelectorAll("img");
+    images.forEach((img) => {
+      let src = img.src;
+      let fileName = src.split("/").pop();
+      fileName = fileName.length > 15 ? fileName.slice(-15) : fileName;
+      if (fileName === "") {
+        fileName = "Image";
+      }
+
+      if (!img.alt) {
+        this.addIssue(fileName, "imageAltText", img);
+      }
+
+      if (
+        src.endsWith(".png") ||
+        src.endsWith(".jpg") ||
+        src.endsWith(".jpeg")
+      ) {
+        fetch(src)
+          .then((response) => {
+            const size = parseInt(
+              response.headers.get("Content-Length") || "0",
+              10
+            );
+            if (size > 300 * 1024) {
+              this.addIssue(fileName, "imageSize", img);
+            }
+          })
+          .catch((error) => {
+            console.error("[Flow Scan] Error fetching image:", error);
+          });
+      }
+    });
   }
 
   checkMetaTags() {
@@ -521,6 +601,7 @@ cursor: pointer;
     let desc = "";
 
     let isIssueHighlighted = this.issueStates[identifier].highlighted;
+    let element = $(`[data-page-issue="${identifier}"]`);
 
     switch (type) {
       case "link":
@@ -534,12 +615,39 @@ cursor: pointer;
         break;
       case "meta":
         icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
-<path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
-</svg>
-`;
+        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
+        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
+        </svg>
+        `;
         title = nameText;
         desc = "Update in Page Settings";
+        break;
+      case "imageAltText":
+        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
+        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
+        </svg>
+        `;
+        title = `${nameText} is missing alt text`;
+        desc = "Add alt text in Editor or Designer";
+        break;
+      case "imageSize":
+        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
+        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
+        </svg>
+        `;
+        title = `${nameText} is over 300KB`;
+        desc = "Optimize image to WEBP";
+        break;
+      case "loremIpsum":
+        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
+        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
+        </svg>
+        `;
+        title = "Lorem Ipsum detected";
+        desc = "Replace with actual content";
         break;
       default:
         title: "Unknown issue";
@@ -556,6 +664,13 @@ cursor: pointer;
       <div class="flows-item-icon">
         ${icon}
       </div> 
+      ${
+        type === "imageAltText" || type === "imageSize"
+          ? `<div class="flows-item-image-preview"><img src='${$(element).attr(
+              "src"
+            )}' alt="Image Preview"></div>`
+          : ""
+      }
     </div>`;
 
     $("#flows-issues-list").append(itemHTML);
@@ -566,8 +681,55 @@ cursor: pointer;
         this.removeIssue(identifier, true);
       } else if (type === "meta") {
         this.removeIssue(identifier, true);
+      } else if (type === "imageAltText") {
+        this.removeIssue(identifier, true);
+      } else if (type === "imageSize") {
+        this.removeIssue(identifier, true);
+      } else if (type === "loremIpsum") {
+        this.removeIssue(identifier, true);
       }
     });
+
+    if (type === "imageAltText" || type === "imageSize") {
+      newItem.on("mouseenter", ".flows-item-title", function (e) {
+        const preview = $(this).siblings(".flows-item-image-preview");
+        preview.show();
+        updateImagePreviewPosition(e, preview);
+      });
+
+      newItem.on("mousemove", ".flows-item-title", function (e) {
+        const preview = $(this).siblings(".flows-item-image-preview");
+        updateImagePreviewPosition(e, preview);
+      });
+
+      newItem.on("mouseleave", ".flows-item-title", function () {
+        $(this).siblings(".flows-item-image-preview").hide();
+      });
+    }
+
+    function updateImagePreviewPosition(e, preview) {
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      const previewWidth = preview.outerWidth();
+      const previewHeight = preview.outerHeight();
+      const xOffset = 5;
+      const yOffset = 5;
+
+      let topPosition = mouseY - previewHeight - yOffset;
+      let leftPosition = mouseX + xOffset;
+
+      if (topPosition < 0) {
+        topPosition = mouseY + yOffset;
+      }
+      if (leftPosition + previewWidth > $(window).width()) {
+        leftPosition = mouseX - previewWidth - xOffset;
+      }
+
+      preview.css({
+        top: topPosition + "px",
+        left: leftPosition + "px",
+      });
+    }
   }
 
   #getEditorBarHeight() {
@@ -642,25 +804,27 @@ cursor: pointer;
     $(document).on("click", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
-      if (type !== "link") {
-        return;
-      }
-      $("html, body").animate(
-        {
-          scrollTop:
-            $(`[data-page-issue=${issueId}]`).offset().top -
-            window.innerHeight / 2,
-        },
-        500
-      );
 
-      if (self.allPersistentHighlights) {
-        self.toggleAllPersistentHighlights();
+      if (type === "imageAltText" || type === "imageSize" || type === "link") {
+        $("html, body").animate(
+          {
+            scrollTop:
+              $(`[data-page-issue=${issueId}]`).offset().top -
+              window.innerHeight / 2,
+          },
+          500
+        );
       }
-      const shouldBeHighlighted = !self.clickedHighlights[issueId];
-      self.removeAllHighlightedBrokenLinks();
-      self.clickedHighlights[issueId] = shouldBeHighlighted;
-      self.highlightBrokenLink(issueId, shouldBeHighlighted);
+
+      if (type === "link") {
+        if (self.allPersistentHighlights) {
+          self.toggleAllPersistentHighlights();
+        }
+        const shouldBeHighlighted = !self.clickedHighlights[issueId];
+        self.removeAllHighlightedBrokenLinks();
+        self.clickedHighlights[issueId] = shouldBeHighlighted;
+        self.highlightBrokenLink(issueId, shouldBeHighlighted);
+      }
     });
 
     $(document).on("mouseenter", ".flows-item-title", function () {
@@ -754,8 +918,10 @@ cursor: pointer;
     setTimeout(() => {
       this.#createIssuesBox(isEditorMode);
       this.#createFloatingActionButton(isEditorMode);
+      this.checkImages();
       this.checkMetaTags();
       this.checkPageLinks();
+      this.checkForLoremIpsum();
       this.#bindEvents();
       this.#initCss();
     }, delayTime);
