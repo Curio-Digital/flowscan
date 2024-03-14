@@ -149,9 +149,9 @@ display: none;
 display: block;
 }
 #flows h4 {
-margin: 0;
-margin-bottom: 0;
-margin-top: 0;
+margin: 0 !important;
+margin-bottom: 0 !important;
+margin-top: 0 !important;
 }
 .flows-title-bar {
 display: flex;
@@ -170,12 +170,12 @@ flex-direction: row;
 gap: 8px;
 }
 .flows-title h4 {
-margin: 0;
 font-size: 12px;
 font-weight: 600;
 line-height: 1.33;
-margin-bottom: 0;
-margin-top: 0;
+margin: 0 !important;
+margin-bottom: 0 !important;
+margin-top: 0 !important;
 }
 .flows-icon {
 width: 24px;
@@ -254,9 +254,9 @@ justify-content: space-between;
 gap: 16px;
 }
 .flows-item h6 {
-margin: 0;
-margin-bottom: 0;
-margin-top: 0;
+margin: 0 !important;
+margin-bottom: 0 !important;
+margin-top: 0 !important;
 font-size: 11.5px;
 font-weight: 400;
 line-height: 16px;
@@ -322,9 +322,9 @@ padding: 8px;
 font-size: 12.5px;
 line-height: 16px;
 font-weight: 600;
-margin: 0;
-margin-bottom: 0;
-margin-top: 0;
+margin: 0 !important;
+margin-bottom: 0 !important;
+margin-top: 0 !important;
 }
 .flows-category-title-right {
 display: flex;
