@@ -12,7 +12,7 @@ Flow Scan is a tool designed to help identify and categorize issues in web pages
 ## CDN Import
 
 ```
-<script async src="https://cdn.jsdelivr.net/npm/@curiolabs/flowscan/flowscan.jsn"></script>
+<script async src="https://cdn.jsdelivr.net/npm/@curiolabs/flowscan/flowscan.js"></script>
 ```
 
 # Flow Scan Documentation
