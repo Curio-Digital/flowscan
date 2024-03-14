@@ -5,7 +5,7 @@
   "main": "flowscan.js",
   "scripts": {
     "test": "echo \"Add this to your page with <script src>\"",
-    "build": "terser src/flowscan.js -o flowscan.js -m --toplevel -c"
+    "build": "terser src/flowscan.js -o flowscan.js --mangle --mangle-props regex=/^#.+$/ -c"
   },
   "repository": {
     "type": "git",
