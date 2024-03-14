@@ -1,6 +1,6 @@
 {
   "name": "@curiolabs/flowscan",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Flow Scan - A page audit script built for Webflow",
   "main": "flowscan.js",
   "scripts": {
