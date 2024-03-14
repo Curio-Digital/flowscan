@@ -1,0 +1,24 @@
+{
+  "name": "flowscan",
+  "version": "1.0.0",
+  "description": "Flow Scan - A page audit script built for Webflow",
+  "main": "flowscan.js",
+  "scripts": {
+    "test": "echo \"Add this to your page with <script src>\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/randomgx/flowscan.git"
+  },
+  "keywords": [
+    "flow-scan",
+    "flowscan",
+    "webflow"
+  ],
+  "author": "Curio",
+  "license": "none",
+  "bugs": {
+    "url": "https://github.com/randomgx/flowscan/issues"
+  },
+  "homepage": "https://github.com/randomgx/flowscan#readme"
+}
