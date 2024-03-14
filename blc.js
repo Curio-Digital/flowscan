@@ -149,6 +149,8 @@ display: none;
 display: block;
 }
 #flows h4 {
+margin: 0;
+margin-bottom: 0;
 margin-top: 0;
 }
 .flows-title-bar {
@@ -172,6 +174,8 @@ margin: 0;
 font-size: 12px;
 font-weight: 600;
 line-height: 1.33;
+margin-bottom: 0;
+margin-top: 0;
 }
 .flows-icon {
 width: 24px;
@@ -251,6 +255,8 @@ gap: 16px;
 }
 .flows-item h6 {
 margin: 0;
+margin-bottom: 0;
+margin-top: 0;
 font-size: 11.5px;
 font-weight: 400;
 line-height: 16px;
@@ -259,6 +265,8 @@ letter-spacing: -0.01em;
 }
 .flows-item p {
 margin: 0;
+margin-bottom: 0;
+margin-top: 0;
 font-size: 11.5px;
 line-height: 16px;
 letter-spacing: -0.01em;
@@ -314,6 +322,9 @@ padding: 8px;
 font-size: 12.5px;
 line-height: 16px;
 font-weight: 600;
+margin: 0;
+margin-bottom: 0;
+margin-top: 0;
 }
 .flows-category-title-right {
 display: flex;
