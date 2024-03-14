@@ -9,10 +9,9 @@ Flow Scan is a tool designed to help identify and categorize issues in web pages
 - **Accessibility**: Issues related to missing alt text for images, etc.
 - **Content**: Issues related to placeholder content like "Lorem Ipsum", missing links, etc.
 
-## Usage
+## CDN Import
 
-1. Add Flow Scan script before body tag closes on Webflow.
-2. Flow Scan will automatically scan the page and categorize issues. You can interact with the UI to view and manage these issues.
+```<script async src="https://cdn.jsdelivr.net/npm/@curiolabs/flowscan/flowscan.js"></script>```
 
 # Flow Scan Documentation
 
