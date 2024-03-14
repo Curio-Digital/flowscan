@@ -14,6 +14,17 @@ class FlowScan {
       localStorage.getItem("flowsIgnoreRefokusShareElements") !== "false";
     this.clickedHighlights = {};
     this.hoveredIssue = null;
+    this.confirmedRemove =
+      localStorage.getItem("flowsConfirmedRemove") === "true";
+    this.reorderCategories =
+      localStorage.getItem("flowsReorderCategories") !== "false";
+
+    this.categories = {
+      SEO: ["meta", "brokenLink"],
+      Performance: ["imageSize"],
+      Accessibility: ["imageAltText"],
+      Content: ["loremIpsum", "missingLink"],
+    };
   }
 
   loadIssueStates() {
@@ -30,8 +41,13 @@ class FlowScan {
     this.issueStates = {};
   }
 
+  setReorderCategories(value) {
+    this.reorderCategories = value;
+    localStorage.setItem("flowsReorderCategories", value);
+  }
+
   getIssueIdentifier(element, type) {
-    if (type === "link") {
+    if (type === "brokenLink" || type === "missingLink") {
       const text = $(element)
         .text()
         .trim()
@@ -44,7 +60,6 @@ class FlowScan {
       const index = $(
         `.${linkClass}:contains('${$(element).text().trim()}')`
       ).index(element);
-
       return `link-${linkClass}-${text}-${index}`;
     } else if (type === "imageAltText") {
       const src = $(element).attr("src");
@@ -86,7 +101,6 @@ bottom: ${additionalBottomSpace + 18}px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   z-index: 1001;
   display: none;
 }
@@ -175,7 +189,6 @@ justify-content: flex-end;
 gap: 8px;
 }
 .flows-title-icon {
-cursor: pointer;
 width: 16px;
 height: 16px;
 display: flex;
@@ -194,7 +207,6 @@ color: #BDBDBD;
 font-size: 11.5px;
 line-height: 16px;
 letter-spacing: -0.01em;
-cursor: pointer;
 transition: color 0.3s ease;
 }
 .flows-bottom-bar a:hover {
@@ -231,19 +243,19 @@ text-align: center;
 }
 .flows-item {
 padding: 8px;
-border-bottom: 1px solid rgba(255, 255, 255, 0.13);
 border-top: 1px solid rgba(255, 255, 255, 0.13);
 display: flex;
 align-items: center;
 justify-content: space-between;
 gap: 16px;
 }
-.flows-item h5 {
+.flows-item h6 {
 margin: 0;
-font-size: 12.5px;
-font-weight: 700;
-line-height: 1.25;
-color: #F5F5F5;
+font-size: 11.5px;
+font-weight: 400;
+line-height: 16px;
+color: #BDBDBD;
+letter-spacing: -0.01em;
 }
 .flows-item p {
 margin: 0;
@@ -259,7 +271,6 @@ justify-content: center;
 width: 16px;
 height: 16px;
 color: #BDBDBD66;
-cursor: pointer;
 transition: color 0.3s ease;
 }
 .flows-item-icon.active {
@@ -270,7 +281,6 @@ display: flex;
 align-items: flex-start;
 justify-content: flex-start;
 flex-direction: column;
-cursor: pointer;
 }
 .flows-item-image-preview {
 display: none;
@@ -282,10 +292,65 @@ border: 1px solid #6A65FD;
 border-radius: 4px;
 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .flows-item-image-preview img {
 max-width: 200px;
 max-height: 200px;
+}
+.flows-category {
+display: flex;
+flex-direction: column;
+align-items: stretch;
+justify-content: center;
+border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+}
+.flows-category-title-bar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 8px;
+padding: 8px;
+}
+.flows-category-title-bar h5 {
+font-size: 12.5px;
+line-height: 16px;
+font-weight: 600;
+}
+.flows-category-title-right {
+display: flex;
+align-items: center;
+justify-content: flex-end;
+gap: 8px;
+}
+.flows-category-count {
+font-size: 12px;
+width: 20px;
+height: 20px;
+border-radius: 50%;
+background-color: #CF313B;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.flows-category-count.empty {
+  background-color: #007A41;
+}
+.flows-category-toggle {
+width: 16px;
+height: 16px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.flows-category-issues {
+overflow: hidden;
+display: flex;
+flex-direction: column;
+align-items: stretch;
+justify-content: center;
+transition: height 0.3s ease;
+}
+.flows-category-issues.collapsed {
+  height: 0px;
 }
 `
         )
@@ -295,25 +360,107 @@ max-height: 200px;
 
   open() {
     $("#flows").addClass("visible");
-    this.updateEmptyState();
   }
 
   close() {
     $("#flows").removeClass("visible");
   }
 
+  openCategory(category) {
+    $(`[data-category="${category}"] .flows-category-issues`).removeClass(
+      "collapsed"
+    );
+    $(`[data-category="${category}"] .flows-category-toggle > svg`).css(
+      "transform",
+      "rotate(180deg)"
+    );
+  }
+
+  closeCategory(category) {
+    $(`[data-category="${category}"] .flows-category-issues`).addClass(
+      "collapsed"
+    );
+    $(`[data-category="${category}"] .flows-category-toggle > svg`).css(
+      "transform",
+      "rotate(0deg)"
+    );
+  }
+
+  toggleCategory(category) {
+    const isCollapsed = $(
+      `[data-category="${category}"] .flows-category-issues`
+    ).hasClass("collapsed");
+    if (isCollapsed) {
+      $(`[data-category="${category}"] .flows-category-toggle > svg`).css(
+        "transform",
+        "rotate(0deg)"
+      );
+    } else {
+      $(`[data-category="${category}"] .flows-category-toggle > svg`).css(
+        "transform",
+        "rotate(180deg)"
+      );
+    }
+
+    $(`[data-category="${category}"] .flows-category-issues`).toggleClass(
+      "collapsed"
+    );
+  }
+
   getIssue(issueId) {
     return this.issues.find((issue) => issue.id === issueId);
   }
 
-  addBrokenLink(element) {
+  getCategoryByType(type) {
+    return (
+      Object.keys(this.categories).find((category) =>
+        this.categories[category].includes(type)
+      ) || "Other"
+    );
+  }
+
+  updateCategoriesCount() {
+    clearTimeout(this.updateCategoriesCountTimeout);
+
+    const self = this;
+    const categoryOrder = [];
+    Object.keys(this.categories).forEach((category) => {
+      const count = self.issues.filter((issue) =>
+        self.categories[category].includes(issue.type)
+      ).length;
+
+      const categoryElement = $(`[data-category="${category}"]`);
+      const countElement = categoryElement.find(".flows-category-count");
+      countElement.text(count);
+
+      if (count === 0) {
+        countElement.addClass("empty");
+      } else {
+        countElement.removeClass("empty");
+      }
+
+      categoryOrder.push({ category, count });
+    });
+
+    if (!this.reorderCategories) return;
+    categoryOrder.sort((a, b) => b.count - a.count);
+
+    this.updateCategoriesCountTimeout = setTimeout(() => {
+      categoryOrder.forEach((item) => {
+        const categoryElement = $(`[data-category="${item.category}"]`);
+        $("#flows-issues-list").append(categoryElement);
+      });
+    }, 1000);
+  }
+
+  addBrokenLink(element, type) {
     let name = $(element).text();
     if (name === "" || name === undefined || name === null) {
       name = "Empty link";
     }
-    const identifier = this.getIssueIdentifier(element, "link");
+    const identifier = this.getIssueIdentifier(element, type);
     $(element).attr("data-page-issue", `${identifier}`);
-    this.addIssue(name, "link", $(element)[0]);
+    this.addIssue(name, type, $(element)[0]);
   }
 
   addIssue(name, type, element, id) {
@@ -346,21 +493,33 @@ max-height: 200px;
     }
     this.saveIssueStates();
     this.updateIssueCount();
+    this.updateCategoriesCount();
   }
 
-  removeIssue(identifier) {
+  removeIssue(identifier, confirm) {
+    if (confirm && !this.confirmedRemove) {
+      var confirmed = window.confirm(
+        "Are you sure you want to ignore this issue? Issues can be restored by clicking on Refresh"
+      );
+      if (!confirmed) return;
+      this.confirmedRemove = true;
+      localStorage.setItem("flowsConfirmedRemove", "true");
+    }
+
     this.issueStates[identifier].removed = true;
     this.highlightBrokenLink(identifier, false);
     this.saveIssueStates();
     this.issues = this.issues.filter((issue) => issue.id !== identifier);
     $(`[data-issue-id="${identifier}"]`).remove();
     this.updateIssueCount();
+    this.updateCategoriesCount();
   }
 
   removeAllIssues() {
     this.issues = [];
-    $("#flows-issues-list").empty();
+    $(".flows-category-issues").empty();
     this.updateIssueCount();
+    this.updateCategoriesCount();
   }
 
   reloadIssues() {
@@ -377,7 +536,7 @@ max-height: 200px;
     );
     if (!confirmed) return;
 
-    $("#flows-issues-list").empty();
+    this.removeAllIssues();
     this.clearLocalIssueStates();
     this.checkMetaTags();
     this.checkPageLinks();
@@ -434,7 +593,7 @@ max-height: 200px;
   toggleAllPersistentHighlights() {
     this.allPersistentHighlights = !this.allPersistentHighlights;
     this.issues.forEach((issue) => {
-      if (issue.type === "link") {
+      if (issue.type === "brokenLink" || issue.type === "missingLink") {
         this.highlightBrokenLink(issue.id, this.allPersistentHighlights);
         this.clickedHighlights[issue.id] = this.allPersistentHighlights;
       }
@@ -456,19 +615,8 @@ max-height: 200px;
     this.clickedHighlights = {};
   }
 
-  updateEmptyState() {
-    if (this.issues.length === 0) {
-      $("#flows-issues-list").html(
-        `<div class="flows-empty-state"><span>No issues found!</span></div>`
-      );
-    } else {
-      $("#flows-issues-list .flows-empty-state").remove();
-    }
-  }
-
   updateIssueCount() {
     $("#flows-fab-count").text(this.issues.length);
-    this.updateEmptyState();
   }
 
   checkForLoremIpsum() {
@@ -581,14 +729,14 @@ max-height: 200px;
                 response.status !== 403 &&
                 response.status !== 0
               ) {
-                this.addBrokenLink(element);
+                this.addBrokenLink(element, "brokenLink");
               }
             })
             .catch((error) => {
-              this.addBrokenLink(element);
+              this.addBrokenLink(element, "brokenLink");
             });
         } else if (href === "#" || href === "") {
-          this.addBrokenLink(element);
+          this.addBrokenLink(element, "missingLink");
         }
       });
   }
@@ -597,20 +745,26 @@ max-height: 200px;
     let icon = "";
     let title = "";
     let nameText = name.length > 25 ? name.substring(0, 25) + "..." : name;
-    let desc = "";
 
     let isIssueHighlighted = this.issueStates[identifier].highlighted;
     let element = $(`[data-page-issue="${identifier}"]`);
 
     switch (type) {
-      case "link":
+      case "missingLink":
         icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
         <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
         </svg>
         `;
         title = `${nameText} is missing link`;
-        desc = "Set link in Editor or Designer";
+        break;
+      case "brokenLink":
+        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
+        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
+        </svg>
+        `;
+        title = `${nameText} link is broken`;
         break;
       case "meta":
         icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -619,7 +773,6 @@ max-height: 200px;
         </svg>
         `;
         title = nameText;
-        desc = "Update in Page Settings";
         break;
       case "imageAltText":
         icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -628,7 +781,6 @@ max-height: 200px;
         </svg>
         `;
         title = `${nameText} is missing alt text`;
-        desc = "Add alt text in Editor or Designer";
         break;
       case "imageSize":
         icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -637,7 +789,6 @@ max-height: 200px;
         </svg>
         `;
         title = `${nameText} is over 300KB`;
-        desc = "Optimize image to WEBP";
         break;
       case "loremIpsum":
         icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -646,19 +797,16 @@ max-height: 200px;
         </svg>
         `;
         title = "Lorem Ipsum detected";
-        desc = "Replace with actual content";
         break;
       default:
         title: "Unknown issue";
-        desc: "Please report this issue to the developer.";
         break;
     }
 
     let itemHTML = `
     <div class="flows-item" data-issue-id="${identifier}" data-issue-type="${type}" data-issue-highlighted="${isIssueHighlighted}">
       <div class="flows-item-title">
-        <h5>${title}</h5>
-        <p>${desc}</p>
+        <h6>${title}</h6>
       </div>
       <div class="flows-item-icon">
         ${icon}
@@ -672,11 +820,15 @@ max-height: 200px;
       }
     </div>`;
 
-    $("#flows-issues-list").append(itemHTML);
+    const category = this.getCategoryByType(type);
+    const categoryElement = $(
+      `[data-category="${category}"] .flows-category-issues`
+    );
+    categoryElement.append(itemHTML);
 
     const newItem = $(`[data-issue-id="${identifier}"]`);
     newItem.find(".flows-item-icon").on("click", () => {
-      if (type === "link") {
+      if (type === "brokenLink" || type === "missingLink") {
         this.removeIssue(identifier, true);
       } else if (type === "meta") {
         this.removeIssue(identifier, true);
@@ -800,13 +952,50 @@ max-height: 200px;
     }
   }
 
+  #createCategories() {
+    const self = this;
+    Object.keys(this.categories).forEach((category) => {
+      let html = `
+      <div class="flows-category" data-category="${category}">
+        <div class="flows-category-title-bar">
+          <h5>${category}</h5>
+          <div class="flows-category-title-right">
+            <div class="flows-category-count"> </div>
+            <div class="flows-category-toggle">
+              <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M7.99996 9.79293L11.6464 6.14648L12.3535 6.85359L7.99996 11.2071L3.64641 6.85359L4.35352 6.14648L7.99996 9.79293Z" fill="#F5F5F5"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="flows-category-issues">
+        </div>
+      </div>
+      `;
+
+      $("#flows-issues-list").append(html);
+    });
+
+    $(document).on("click", ".flows-category-title-bar", function () {
+      let category = $(this).parent().data("category");
+      self.toggleCategory(category);
+    });
+  }
+
   #bindEvents() {
     const self = this;
     $(document).on("click", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
 
-      if (type === "imageAltText" || type === "imageSize" || type === "link") {
+      if (
+        type === "imageAltText" ||
+        type === "imageSize" ||
+        type === "brokenLink" ||
+        type === "missingLink" ||
+        type === "meta" ||
+        type === "loremIpsum"
+      ) {
         $("html, body").animate(
           {
             scrollTop:
@@ -817,7 +1006,7 @@ max-height: 200px;
         );
       }
 
-      if (type === "link") {
+      if (type === "brokenLink" || type === "missingLink") {
         if (self.allPersistentHighlights) {
           self.toggleAllPersistentHighlights();
         }
@@ -831,7 +1020,7 @@ max-height: 200px;
     $(document).on("mouseenter", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
-      if (type === "link") {
+      if (type === "brokenLink" || type === "missingLink") {
         self.hoveredIssue = issueId;
         if (!self.clickedHighlights[issueId]) {
           self.highlightBrokenLink(issueId, true);
@@ -842,7 +1031,7 @@ max-height: 200px;
     $(document).on("mouseleave", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
-      if (type === "link") {
+      if (type === "brokenLink" || type === "missingLink") {
         self.hoveredIssue = null;
         if (!self.clickedHighlights[issueId]) {
           self.highlightBrokenLink(issueId, false);
@@ -919,6 +1108,7 @@ max-height: 200px;
     setTimeout(() => {
       this.#createIssuesBox(isEditorMode);
       this.#createFloatingActionButton(isEditorMode);
+      this.#createCategories();
       this.checkImages();
       this.checkMetaTags();
       this.checkPageLinks();
