@@ -65,7 +65,7 @@ class FlowScan {
       const src = $(element).attr("src");
       let fileName = src.split("/").pop();
       fileName = fileName.slice(0, 15);
-      return `image-${fileName}`;
+      return `alt-${fileName}`;
     } else if (type === "imageSize") {
       const src = $(element).attr("src");
       let fileName = src.split("/").pop();
