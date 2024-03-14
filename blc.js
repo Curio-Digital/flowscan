@@ -169,7 +169,7 @@ justify-content: flex-start;
 flex-direction: row;
 gap: 8px;
 }
-.flows-title h4 {
+.flows-title span {
 font-size: 12px;
 font-weight: 600;
 line-height: 1.33;
@@ -253,7 +253,7 @@ align-items: center;
 justify-content: space-between;
 gap: 16px;
 }
-.flows-item h6 {
+.flows-item span {
 margin: 0 !important;
 margin-bottom: 0 !important;
 margin-top: 0 !important;
@@ -318,7 +318,7 @@ justify-content: space-between;
 gap: 8px;
 padding: 8px;
 }
-.flows-category-title-bar h5 {
+.flows-category-title-bar span {
 font-size: 12.5px;
 line-height: 16px;
 font-weight: 600;
@@ -817,7 +817,7 @@ transition: height 0.3s ease;
     let itemHTML = `
     <div class="flows-item" data-issue-id="${identifier}" data-issue-type="${type}" data-issue-highlighted="${isIssueHighlighted}">
       <div class="flows-item-title">
-        <h6>${title}</h6>
+        <span>${title}</span>
       </div>
       <div class="flows-item-icon">
         ${icon}
@@ -908,9 +908,9 @@ transition: height 0.3s ease;
               <path d="M20 28H14V23.2857H20V28ZM19.25 20.1429H14.75L14 6H20L19.25 20.1429Z" fill="#676CF8"/>
               </svg>
             </div>
-            <h4>
+            <span>
             Flow Scan
-            </h4>
+            </span>
           </div>
           <div class='flows-title-icons'>
             <div class='flows-title-icon' id="flows-highlight-all">
@@ -969,7 +969,7 @@ transition: height 0.3s ease;
       let html = `
       <div class="flows-category" data-category="${category}">
         <div class="flows-category-title-bar">
-          <h5>${category}</h5>
+          <span>${category}</span>
           <div class="flows-category-title-right">
             <div class="flows-category-count"> </div>
             <div class="flows-category-toggle">
