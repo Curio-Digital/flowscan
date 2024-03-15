@@ -2,18 +2,20 @@
 
 Flow Scan is a tool designed to help identify and categorize issues in web pages. It scans the page for common problems related to SEO, performance, accessibility, and content, and organizes them into four categories for easy identification and resolution.
 
+## Install
+
+Add the following script to your Footer code (before body close tag)
+
+```
+<script>document.addEventListener("DOMContentLoaded",function(){function loadflowscan(e){let t=document.createElement("script");t.setAttribute("type","text/javascript");if(e){t.setAttribute("src",e);document.body.appendChild(t);t.addEventListener("error",e=>{console.log("Error loading Flow Scan",e)})}}let src=window.location.host.includes("webflow.io")?"https://cdn.jsdelivr.net/npm/@curiolabs/flowscan/flowscan.js":"";if(src){loadflowscan(src)}});</script>
+```
+
 ## Categories
 
 - **SEO**: Issues related to meta tags, broken links, etc.
 - **Performance**: Issues related to large image sizes, etc.
 - **Accessibility**: Issues related to missing alt text for images, etc.
 - **Content**: Issues related to placeholder content like "Lorem Ipsum", missing links, etc.
-
-## CDN Import
-
-```
-<script async src="https://cdn.jsdelivr.net/npm/@curiolabs/flowscan/flowscan.js"></script>
-```
 
 # Flow Scan Documentation
 

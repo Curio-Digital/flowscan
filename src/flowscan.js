@@ -20,7 +20,7 @@ class FlowScan {
       localStorage.getItem("flowsReorderCategories") !== "false";
 
     this.categories = {
-      SEO: ["meta", "brokenLink"],
+      SEO: ["meta", "brokenLink", "stagingIndexing"],
       Performance: ["imageSize"],
       Accessibility: ["imageAltText"],
       Content: ["loremIpsum", "missingLink"],
@@ -535,10 +535,7 @@ transition: height 0.3s ease;
 
   reloadIssues() {
     this.removeAllIssues();
-    this.checkMetaTags();
-    this.checkPageLinks();
-    this.checkImages();
-    this.checkForLoremIpsum();
+    this.runChecks();
   }
 
   refreshStoredIssues() {
@@ -549,10 +546,7 @@ transition: height 0.3s ease;
 
     this.removeAllIssues();
     this.clearLocalIssueStates();
-    this.checkMetaTags();
-    this.checkPageLinks();
-    this.checkImages();
-    this.checkForLoremIpsum();
+    this.runChecks();
   }
 
   setIgnoreFinsweetAttributes(value) {
@@ -752,6 +746,33 @@ transition: height 0.3s ease;
       });
   }
 
+  checkSubdomainIndexing() {
+    const robotsUrl = "/robots.txt";
+    fetch(robotsUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Robots.txt not found");
+        }
+        return response.text();
+      })
+      .then((content) => {
+        if (content.trim() !== "User-agent: *\nDisallow: /") {
+          this.addIssue(
+            "Webflow subdomain indexing is enabled",
+            "stagingIndexing",
+            null,
+            "webflow-subdomain-indexing"
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(
+          "[Flow Scan] Error checking Webflow subdomain indexing:",
+          error
+        );
+      });
+  }
+
   #createItem(name, type, identifier) {
     let icon = "";
     let title = "";
@@ -760,56 +781,42 @@ transition: height 0.3s ease;
     let isIssueHighlighted = this.issueStates[identifier].highlighted;
     let element = $(`[data-page-issue="${identifier}"]`);
 
-    switch (type) {
-      case "missingLink":
-        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    let defaultIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
         <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
         </svg>
         `;
+
+    switch (type) {
+      case "missingLink":
+        icon = defaultIcon;
         title = `${nameText} is missing link`;
         break;
       case "brokenLink":
-        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
-        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
-        </svg>
-        `;
+        icon = defaultIcon;
         title = `${nameText} link is broken`;
         break;
       case "meta":
-        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
-        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
-        </svg>
-        `;
+        icon = defaultIcon;
         title = nameText;
         break;
       case "imageAltText":
-        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
-        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
-        </svg>
-        `;
+        icon = defaultIcon;
         title = `${nameText} is missing alt text`;
         break;
       case "imageSize":
-        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
-        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
-        </svg>
-        `;
+        icon = defaultIcon;
         title = `${nameText} is over 300KB`;
         break;
       case "loremIpsum":
-        icon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7.79293 7.49998L5.64648 9.64642L6.35359 10.3535L8.50004 8.20708L10.6465 10.3535L11.3536 9.64642L9.20714 7.49998L11.3536 5.35353L10.6465 4.64642L8.50004 6.79287L6.35359 4.64642L5.64648 5.35353L7.79293 7.49998Z" fill="#F5F5F5"/>
-        <path opacity="0.4" fill-rule="evenodd" clip-rule="evenodd" d="M8.5 2C5.46243 2 3 4.46243 3 7.5C3 10.5376 5.46243 13 8.5 13C11.5376 13 14 10.5376 14 7.5C14 4.46243 11.5376 2 8.5 2ZM2 7.5C2 3.91015 4.91015 1 8.5 1C12.0899 1 15 3.91015 15 7.5C15 11.0899 12.0899 14 8.5 14C4.91015 14 2 11.0899 2 7.5Z" fill="#F5F5F5"/>
-        </svg>
-        `;
+        icon = defaultIcon;
         title = "Lorem Ipsum detected";
         break;
+      case "stagingIndexing":
+        icon = defaultIcon;
+        title = "Webflow subdomain indexing is enabled";
       default:
+        icon: defaultIcon;
         title: "Unknown issue";
         break;
     }
@@ -848,6 +855,8 @@ transition: height 0.3s ease;
       } else if (type === "imageSize") {
         this.removeIssue(identifier, true);
       } else if (type === "loremIpsum") {
+        this.removeIssue(identifier, true);
+      } else if (type === "stagingIndexing") {
         this.removeIssue(identifier, true);
       }
     });
@@ -961,6 +970,14 @@ transition: height 0.3s ease;
     } else {
       $("body").append(fab);
     }
+  }
+
+  runChecks() {
+    this.checkImages();
+    this.checkMetaTags();
+    this.checkPageLinks();
+    this.checkForLoremIpsum();
+    this.checkSubdomainIndexing();
   }
 
   #createCategories() {
@@ -1120,10 +1137,7 @@ transition: height 0.3s ease;
       this.#createIssuesBox(isEditorMode);
       this.#createFloatingActionButton(isEditorMode);
       this.#createCategories();
-      this.checkImages();
-      this.checkMetaTags();
-      this.checkPageLinks();
-      this.checkForLoremIpsum();
+      this.runChecks();
       this.#bindEvents();
       this.#initCss();
     }, delayTime);
