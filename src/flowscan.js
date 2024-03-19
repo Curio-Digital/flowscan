@@ -481,12 +481,17 @@ transition: height 0.3s ease;
     } else {
       identifier = id;
     }
+
     if (!this.issueStates[identifier]) {
       this.issueStates[identifier] = { removed: false, highlighted: false };
     }
 
     if (type === "imageAltText" || type === "imageSize") {
-      $(element).attr("data-page-issue", `${identifier}`);
+      if ($(element).attr("data-page-issue")) {
+        identifier = $(element).attr("data-page-issue");
+      } else {
+        $(element).attr("data-page-issue", `${identifier}`);
+      }
     }
 
     if (!this.issueStates[identifier].removed) {
