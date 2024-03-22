@@ -12,6 +12,8 @@ class FlowScan {
       localStorage.getItem("flowsIgnoreInteractionElements") !== "false";
     this.ignoreRefokusShareElements =
       localStorage.getItem("flowsIgnoreRefokusShareElements") !== "false";
+    this.ignoreLightboxElements =
+      localStorage.getItem("flowsIgnoreLightboxElements") !== "false";
     this.clickedHighlights = {};
     this.hoveredIssue = null;
     this.confirmedRemove =
@@ -578,6 +580,12 @@ transition: height 0.3s ease;
     this.reloadIssues();
   }
 
+  setIgnoreLightboxElements(value) {
+    this.ignoreLightboxElements = value;
+    localStorage.setItem("flowsIgnoreLightboxElements", value);
+    this.reloadIssues();
+  }
+
   highlightBrokenLink(identifier, on) {
     if (on) {
       this.issueStates[identifier].highlighted = true;
@@ -717,7 +725,9 @@ transition: height 0.3s ease;
             (this.ignoreCtaAttributes &&
               element.attributes[i].name.startsWith("cta")) ||
             (this.ignoreRefokusShareElements &&
-              element.attributes[i].name.startsWith("r-share"))
+              element.attributes[i].name.startsWith("r-share")) ||
+            (this.ignoreLightboxElements &&
+              element.classList.contains("w-lightbox"))
           ) {
             return false;
           }
