@@ -1003,7 +1003,7 @@ transition: height 0.3s ease;
         <div class="flows-category-title-bar">
           <span>${category}</span>
           <div class="flows-category-title-right">
-            <div class="flows-category-count"> </div>
+            <div class="flows-category-count empty">0</div>
             <div class="flows-category-toggle">
               <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M7.99996 9.79293L11.6464 6.14648L12.3535 6.85359L7.99996 11.2071L3.64641 6.85359L4.35352 6.14648L7.99996 9.79293Z" fill="#F5F5F5"/>
