@@ -24,7 +24,7 @@ class FlowScan {
     this.categories = {
       SEO: ["meta", "brokenLink", "stagingIndexing"],
       Performance: ["imageSize"],
-      Accessibility: ["imageAltText"],
+      Accessibility: ["imageAltText", "lang"],
       Content: ["loremIpsum", "missingLink"],
     };
   }
@@ -761,6 +761,13 @@ transition: height 0.3s ease;
       });
   }
 
+  checkLanguageCode() {
+    const lang = $("html").attr("lang");
+    if (!lang) {
+      this.addIssue("Missing language code", "lang", null, "language-code");
+    }
+  }
+
   checkSubdomainIndexing() {
     const robotsUrl = "/robots.txt";
     fetch(robotsUrl)
@@ -830,6 +837,11 @@ transition: height 0.3s ease;
       case "stagingIndexing":
         icon = defaultIcon;
         title = "Webflow subdomain indexing is enabled";
+        break;
+      case "lang":
+        icon = defaultIcon;
+        title = "Language code is not set";
+        break;
       default:
         icon: defaultIcon;
         title: "Unknown issue";
@@ -872,6 +884,8 @@ transition: height 0.3s ease;
       } else if (type === "loremIpsum") {
         this.removeIssue(identifier, true);
       } else if (type === "stagingIndexing") {
+        this.removeIssue(identifier, true);
+      } else if (type === "lang") {
         this.removeIssue(identifier, true);
       }
     });
@@ -993,6 +1007,7 @@ transition: height 0.3s ease;
     this.checkPageLinks();
     this.checkForLoremIpsum();
     this.checkSubdomainIndexing();
+    this.checkLanguageCode();
   }
 
   #createCategories() {
