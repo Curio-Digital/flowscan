@@ -105,6 +105,7 @@ bottom: ${additionalBottomSpace + 18}px;
   justify-content: center;
   z-index: 1001;
   display: none;
+  cursor: pointer;
 }
 #flows-fab.active {
   display: flex;
@@ -200,6 +201,7 @@ height: 16px;
 display: flex;
 align-items: center;
 justify-content: center;
+cursor: pointer;
 }
 .flows-bottom-bar {
 display: flex;
@@ -214,6 +216,7 @@ font-size: 11.5px;
 line-height: 16px;
 letter-spacing: -0.01em;
 transition: color 0.3s ease;
+cursor: pointer;
 }
 .flows-bottom-bar a:hover {
   color: #6A65FD;
@@ -256,6 +259,7 @@ justify-content: space-between;
 gap: 16px;
 }
 .flows-item span {
+cursor: pointer;
 margin: 0 !important;
 margin-bottom: 0 !important;
 margin-top: 0 !important;
@@ -282,6 +286,7 @@ width: 16px;
 height: 16px;
 color: #BDBDBD66;
 transition: color 0.3s ease;
+cursor: pointer;
 }
 .flows-item-icon.active {
 color: #BDBDBD;
@@ -353,6 +358,7 @@ height: 16px;
 display: flex;
 align-items: center;
 justify-content: center;
+cursor: pointer;
 }
 .flows-category-issues {
 overflow: hidden;
@@ -376,6 +382,8 @@ transition: height 0.3s ease;
   }
 
   close() {
+    this.removeAllHighlightedBrokenLinks();
+    this.toggleAllPersistentHighlights(false);
     $("#flows").removeClass("visible");
   }
 
@@ -467,7 +475,7 @@ transition: height 0.3s ease;
   }
 
   addBrokenLink(element, type) {
-    let name = $(element).text();
+    let name = $(element).text().replace(/\n/g, "");
     if (name === "" || name === undefined || name === null) {
       name = "Empty link";
     }
@@ -608,8 +616,13 @@ transition: height 0.3s ease;
     }
   }
 
-  toggleAllPersistentHighlights() {
-    this.allPersistentHighlights = !this.allPersistentHighlights;
+  toggleAllPersistentHighlights(enable) {
+    if (enable === undefined) {
+      this.allPersistentHighlights = !this.allPersistentHighlights;
+    } else {
+      this.allPersistentHighlights = enable;
+    }
+
     this.issues.forEach((issue) => {
       if (issue.type === "brokenLink" || issue.type === "missingLink") {
         this.highlightBrokenLink(issue.id, this.allPersistentHighlights);
@@ -799,6 +812,8 @@ transition: height 0.3s ease;
     let icon = "";
     let title = "";
     let nameText = name.length > 25 ? name.substring(0, 25) + "..." : name;
+
+    nameText !== "" ? nameText : "Element";
 
     let isIssueHighlighted = this.issueStates[identifier].highlighted;
     let element = $(`[data-page-issue="${identifier}"]`);
@@ -1051,8 +1066,7 @@ transition: height 0.3s ease;
         type === "imageSize" ||
         type === "brokenLink" ||
         type === "missingLink" ||
-        type === "meta" ||
-        type === "loremIpsum"
+        type === "meta"
       ) {
         $("html, body").animate(
           {
@@ -1106,10 +1120,14 @@ transition: height 0.3s ease;
     });
 
     $(document).on("click", "#flows-close", function () {
+      self.removeAllHighlightedBrokenLinks();
+      self.toggleAllPersistentHighlights(false);
       $("#flows").toggleClass("visible");
     });
 
     $(document).on("click", "#flows-fab", function () {
+      self.removeAllHighlightedBrokenLinks();
+      self.toggleAllPersistentHighlights(false);
       $("#flows").toggleClass("visible");
     });
   }

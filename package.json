@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/randomgx/flowscan/issues"
   },
-  "homepage": "https://curiodigital.io/flow-scan",
+  "homepage": "https://curiodigital.io/flowscan",
   "devDependencies": {
     "terser": "^5.29.2"
   }
