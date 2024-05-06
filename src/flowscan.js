@@ -723,8 +723,10 @@ transition: height 0.3s ease;
     const isEditorMode =
       new URLSearchParams(window.location.search).get("edit") === "1";
     let baseSelector = isEditorMode ? ".w-editor-edit-fade-in " : "";
-    let selector =
-      baseSelector + "a:visible, " + baseSelector + "button:visible";
+    let selector = isEditorMode
+      ? baseSelector + "a:visible, " + baseSelector + "button:visible"
+      : baseSelector + "a, " + baseSelector + "button";
+
     $(selector)
       .filter((index, element) => {
         if ($(element).attr("data-w-id") && this.ignoreInteractionElements) {
