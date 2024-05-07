@@ -206,7 +206,7 @@ cursor: pointer;
 .flows-bottom-bar {
 display: flex;
 align-items: center;
-justify-content: flex-end;
+justify-content: space-between;
 gap: 8px;
 padding: 8px;
 }
@@ -220,6 +220,12 @@ cursor: pointer;
 }
 .flows-bottom-bar a:hover {
   color: #6A65FD;
+}
+.flows-bottom-bar span {
+color: #BDBDBD;
+font-size: 11.5px;
+line-height: 16px;
+letter-spacing: -0.01em;
 }
 .flows-empty-state {
 display: flex;
@@ -988,6 +994,7 @@ transition: height 0.3s ease;
         <div id='flows-issues-list'>
         </div>
         <div class="flows-bottom-bar">
+          <span>v0.1.12</span>
           <a id="flows-refresh">Refresh</a>
         </div>
       </div>`;
