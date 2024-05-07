@@ -994,7 +994,7 @@ transition: height 0.3s ease;
         <div id='flows-issues-list'>
         </div>
         <div class="flows-bottom-bar">
-          <span>v0.2.2</span>
+          <span>v1.0.0</span>
           <a id="flows-refresh">Refresh</a>
         </div>
       </div>`;
