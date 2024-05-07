@@ -7,7 +7,7 @@ Flow Scan is a tool designed to help identify and categorize issues in web pages
 Add the following script to your Footer code (before body close tag)
 
 ```
-<script>let time = (new Date().getTime());document.addEventListener("DOMContentLoaded",function(){function loadflowscan(e){let t=document.createElement("script");t.setAttribute("type","text/javascript");if(e){t.setAttribute("src",e);document.body.appendChild(t);t.addEventListener("error",e=>{console.log("Error loading Flow Scan",e)})}}let src=window.location.host.includes("webflow.io")?"https://cdn.jsdelivr.net/npm/@curiolabs/flowscan/flowscan.js?"+time:"";if(src){loadflowscan(src)}});</script>
+<script>document.addEventListener("DOMContentLoaded",function(){function loadflowscan(e){let t=document.createElement("script");t.setAttribute("type","text/javascript");if(e){t.setAttribute("src",e);document.body.appendChild(t);t.addEventListener("error",e=>{console.log("Error loading Flow Scan",e)})}}let src=window.location.host.includes("webflow.io")?"https://cdn.jsdelivr.net/npm/@curiolabs/flowscan/flowscan.js":"";if(src){loadflowscan(src)}});</script>
 ```
 
 ## Categories
