@@ -25,7 +25,7 @@ class FlowScan {
       SEO: ["meta", "brokenLink", "stagingIndexing"],
       Performance: ["imageSize"],
       Accessibility: ["imageAltText", "lang"],
-      Content: ["loremIpsum", "missingLink"],
+      Content: ["loremIpsum", "missingLink", "stagingLink"],
     };
   }
 
@@ -484,7 +484,7 @@ transition: height 0.3s ease;
   addBrokenLink(element, type) {
     let name = $(element).text().replace(/\n/g, "");
     if (name === "" || name === undefined || name === null) {
-      name = "Empty link";
+      name = "Empty element";
     }
     const identifier = this.getIssueIdentifier(element, type);
     $(element).attr("data-page-issue", `${identifier}`);
@@ -762,7 +762,8 @@ transition: height 0.3s ease;
           href &&
           href !== "#" &&
           !href.startsWith("mailto:") &&
-          !href.startsWith("tel:")
+          !href.startsWith("tel:") &&
+          !href.includes("webflow.io")
         ) {
           fetch(href, { method: "HEAD", mode: "no-cors" })
             .then((response) => {
@@ -779,6 +780,8 @@ transition: height 0.3s ease;
             });
         } else if (href === "#" || href === "") {
           this.addBrokenLink(element, "missingLink");
+        } else if (href && href.includes("webflow.io")) {
+          this.addBrokenLink(element, "stagingLink");
         }
       });
   }
@@ -842,6 +845,10 @@ transition: height 0.3s ease;
         icon = defaultIcon;
         title = `${nameText} link is broken`;
         break;
+      case "stagingLink":
+        icon = defaultIcon;
+        title = `${nameText} links to the staging domain`;
+        break;
       case "meta":
         icon = defaultIcon;
         title = nameText;
@@ -897,20 +904,10 @@ transition: height 0.3s ease;
 
     const newItem = $(`[data-issue-id="${identifier}"]`);
     newItem.find(".flows-item-icon").on("click", () => {
-      if (type === "brokenLink" || type === "missingLink") {
-        this.removeIssue(identifier, true);
-      } else if (type === "meta") {
-        this.removeIssue(identifier, true);
-      } else if (type === "imageAltText") {
-        this.removeIssue(identifier, true);
-      } else if (type === "imageSize") {
-        this.removeIssue(identifier, true);
-      } else if (type === "loremIpsum") {
-        this.removeIssue(identifier, true);
-      } else if (type === "stagingIndexing") {
-        this.removeIssue(identifier, true);
-      } else if (type === "lang") {
-        this.removeIssue(identifier, true);
+      switch (type) {
+        default:
+          this.removeIssue(identifier, true);
+          break;
       }
     });
 
@@ -1076,7 +1073,8 @@ transition: height 0.3s ease;
         type === "imageSize" ||
         type === "brokenLink" ||
         type === "missingLink" ||
-        type === "meta"
+        type === "meta" ||
+        type === "stagingLink"
       ) {
         $("html, body").animate(
           {
@@ -1088,7 +1086,11 @@ transition: height 0.3s ease;
         );
       }
 
-      if (type === "brokenLink" || type === "missingLink") {
+      if (
+        type === "brokenLink" ||
+        type === "missingLink" ||
+        type === "stagingLink"
+      ) {
         if (self.allPersistentHighlights) {
           self.toggleAllPersistentHighlights();
         }
@@ -1102,7 +1104,11 @@ transition: height 0.3s ease;
     $(document).on("mouseenter", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
-      if (type === "brokenLink" || type === "missingLink") {
+      if (
+        type === "brokenLink" ||
+        type === "missingLink" ||
+        type === "stagingLink"
+      ) {
         self.hoveredIssue = issueId;
         if (!self.clickedHighlights[issueId]) {
           self.highlightBrokenLink(issueId, true);
@@ -1113,7 +1119,11 @@ transition: height 0.3s ease;
     $(document).on("mouseleave", ".flows-item-title", function () {
       const issueId = $(this).parent().data("issue-id");
       const type = $(this).parent().data("issue-type");
-      if (type === "brokenLink" || type === "missingLink") {
+      if (
+        type === "brokenLink" ||
+        type === "missingLink" ||
+        type === "stagingLink"
+      ) {
         self.hoveredIssue = null;
         if (!self.clickedHighlights[issueId]) {
           self.highlightBrokenLink(issueId, false);
@@ -1143,11 +1153,7 @@ transition: height 0.3s ease;
   }
 
   init() {
-    if (!window.location.host.includes("webflow.io")) {
-      return;
-    }
-
-    console.info("Flow Scan v1.0.2");
+    console.info("Flow Scan v1.0.3");
 
     const isEditorMode =
       new URLSearchParams(window.location.search).get("edit") === "1";

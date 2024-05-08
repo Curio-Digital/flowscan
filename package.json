@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/randomgx/flowscan.git"
+    "url": "git+https://github.com/Curio-Digital/flowscan.git"
   },
   "keywords": [
     "flow-scan",
@@ -19,7 +19,7 @@
   "author": "Curio",
   "license": "none",
   "bugs": {
-    "url": "https://github.com/randomgx/flowscan/issues"
+    "url": "https://github.com/Curio-Digital/flowscan/issues"
   },
   "homepage": "https://curiodigital.io/flowscan",
   "devDependencies": {
