@@ -217,6 +217,7 @@ line-height: 16px;
 letter-spacing: -0.01em;
 transition: color 0.3s ease;
 cursor: pointer;
+text-decoration: none;
 }
 .flows-bottom-bar a:hover {
   color: #6A65FD;
@@ -994,7 +995,7 @@ transition: height 0.3s ease;
         <div id='flows-issues-list'>
         </div>
         <div class="flows-bottom-bar">
-          <span>v1.0.1</span>
+          <a href="https://curio-digital.canny.io/flow-scan-feature-requests" target="_blank">Request a Feature</a>
           <a id="flows-refresh">Refresh</a>
         </div>
       </div>`;
@@ -1145,6 +1146,8 @@ transition: height 0.3s ease;
     if (!window.location.host.includes("webflow.io")) {
       return;
     }
+
+    console.info("Flow Scan v1.0.2");
 
     const isEditorMode =
       new URLSearchParams(window.location.search).get("edit") === "1";
