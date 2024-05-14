@@ -638,11 +638,11 @@ transition: height 0.3s ease;
     });
 
     if (this.allPersistentHighlights) {
-      $(".flows-highlight-icon").hide();
-      $(".flows-no-highlight-icon").show();
-    } else {
       $(".flows-highlight-icon").show();
       $(".flows-no-highlight-icon").hide();
+    } else {
+      $(".flows-highlight-icon").hide();
+      $(".flows-no-highlight-icon").show();
     }
   }
 
@@ -973,11 +973,11 @@ transition: height 0.3s ease;
           </div>
           <div class='flows-title-icons'>
             <div class='flows-title-icon' id="flows-highlight-all">
-              <svg class="flows-highlight-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg class="flows-highlight-icon" style="display: none;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M7.99988 9.5C8.82831 9.5 9.49988 8.82843 9.49988 8C9.49988 7.17157 8.82831 6.5 7.99988 6.5C7.17145 6.5 6.49988 7.17157 6.49988 8C6.49988 8.82843 7.17145 9.5 7.99988 9.5Z" fill="#BDBDBD"/>
               <path fill-rule="evenodd" clip-rule="evenodd" d="M7.99992 4C5.37585 4 3.11601 5.55492 2.08952 7.79148C2.02875 7.92388 2.02875 8.07621 2.08952 8.20861C3.11603 10.4451 5.37585 12 7.99988 12C10.624 12 12.8838 10.4451 13.9103 8.20852C13.9711 8.07612 13.9711 7.92379 13.9103 7.79139C12.8838 5.55488 10.624 4 7.99992 4ZM7.99988 11C5.86334 11 4.01036 9.78173 3.09949 8.00004C4.01035 6.21831 5.86335 5 7.99992 5C10.1365 5 11.9894 6.21827 12.9003 7.99996C11.9895 9.78169 10.1365 11 7.99988 11Z" fill="#BDBDBD"/>
               </svg>
-              <svg class="flows-no-highlight-icon" style="display: none;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg class="flows-no-highlight-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M10.705 11.4122L13.6465 14.3536L14.3536 13.6465L2.35359 1.64648L1.64648 2.35359L4.38813 5.09524C3.39358 5.76124 2.59323 6.69436 2.08968 7.79152C2.02891 7.92392 2.02891 8.07624 2.08968 8.20865C3.11619 10.4452 5.37601 12 8.00004 12C8.96543 12 9.88153 11.7896 10.705 11.4122ZM9.94077 10.6479L5.11155 5.81865C4.25768 6.3466 3.55891 7.10172 3.09965 8.00007C4.01052 9.78177 5.8635 11 8.00004 11C8.68311 11 9.33719 10.8755 9.94077 10.6479Z" fill="#BDBDBD"/>
               <path d="M13.9104 8.20856C13.5777 8.93353 13.1154 9.58688 12.5531 10.1389L11.8461 9.43184C12.2703 9.01685 12.6276 8.5337 12.9005 8C11.9896 6.21831 10.1366 5.00004 8.00008 5.00004C7.81177 5.00004 7.62565 5.0095 7.4422 5.02798L6.5717 4.15749C7.0313 4.05443 7.50932 4.00004 8.00008 4.00004C10.6241 4.00004 12.8839 5.55491 13.9104 7.79143C13.9712 7.92383 13.9712 8.07616 13.9104 8.20856Z" fill="#BDBDBD"/>
               </svg>
