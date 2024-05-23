@@ -503,7 +503,11 @@ transition: height 0.3s ease;
       this.issueStates[identifier] = { removed: false, highlighted: false };
     }
 
-    if (type === "imageAltText" || type === "imageSize") {
+    if (
+      type === "imageAltText" ||
+      type === "imageSize" ||
+      type === "loremIpsum"
+    ) {
       if ($(element).attr("data-page-issue")) {
         identifier = $(element).attr("data-page-issue");
       } else {
@@ -631,7 +635,11 @@ transition: height 0.3s ease;
     }
 
     this.issues.forEach((issue) => {
-      if (issue.type === "brokenLink" || issue.type === "missingLink") {
+      if (
+        issue.type === "brokenLink" ||
+        issue.type === "missingLink" ||
+        issue.type === "loremIpsum"
+      ) {
         this.highlightBrokenLink(issue.id, this.allPersistentHighlights);
         this.clickedHighlights[issue.id] = this.allPersistentHighlights;
       }
@@ -660,8 +668,39 @@ transition: height 0.3s ease;
   checkForLoremIpsum() {
     const bodyText = document.body.innerText.toLowerCase();
     if (bodyText.includes("lorem ipsum")) {
-      this.addIssue("Lorem Ipsum detected", "loremIpsum", document.body);
+      const elements = this.findElementsContainingText("lorem ipsum");
+      elements.forEach((element, index) => {
+        this.addIssue(
+          "Lorem Ipsum detected",
+          "loremIpsum",
+          element,
+          `loremIpsum-${index}`
+        );
+      });
     }
+  }
+
+  findElementsContainingText(text) {
+    const elements = [];
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          return node.nodeValue.toLowerCase().includes(text)
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT;
+        },
+      },
+      false
+    );
+
+    let node;
+    while ((node = walker.nextNode())) {
+      elements.push(node.parentNode);
+    }
+
+    return elements;
   }
 
   checkImages() {
@@ -1074,7 +1113,8 @@ transition: height 0.3s ease;
         type === "brokenLink" ||
         type === "missingLink" ||
         type === "meta" ||
-        type === "stagingLink"
+        type === "stagingLink" ||
+        type === "loremIpsum"
       ) {
         $("html, body").animate(
           {
@@ -1089,7 +1129,8 @@ transition: height 0.3s ease;
       if (
         type === "brokenLink" ||
         type === "missingLink" ||
-        type === "stagingLink"
+        type === "stagingLink" ||
+        type === "loremIpsum"
       ) {
         if (self.allPersistentHighlights) {
           self.toggleAllPersistentHighlights();
@@ -1107,7 +1148,8 @@ transition: height 0.3s ease;
       if (
         type === "brokenLink" ||
         type === "missingLink" ||
-        type === "stagingLink"
+        type === "stagingLink" ||
+        type === "loremIpsum"
       ) {
         self.hoveredIssue = issueId;
         if (!self.clickedHighlights[issueId]) {
@@ -1122,7 +1164,8 @@ transition: height 0.3s ease;
       if (
         type === "brokenLink" ||
         type === "missingLink" ||
-        type === "stagingLink"
+        type === "stagingLink" ||
+        type === "loremIpsum"
       ) {
         self.hoveredIssue = null;
         if (!self.clickedHighlights[issueId]) {
@@ -1153,7 +1196,7 @@ transition: height 0.3s ease;
   }
 
   init() {
-    console.info("Flow Scan v1.0.5");
+    console.info("Flow Scan v1.0.6");
 
     const isEditorMode =
       new URLSearchParams(window.location.search).get("edit") === "1";
