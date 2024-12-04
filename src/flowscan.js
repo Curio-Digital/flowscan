@@ -717,7 +717,8 @@ transition: height 0.3s ease;
         this.addIssue(fileName, "imageAltText", img);
       }
 
-      if (
+      //Removed temporarily due to Rate limit issue
+      /*if (
         src.endsWith(".png") ||
         src.endsWith(".jpg") ||
         src.endsWith(".jpeg")
@@ -735,7 +736,7 @@ transition: height 0.3s ease;
           .catch((error) => {
             console.error("[Flow Scan] Error fetching image:", error);
           });
-      }
+      }*/
     });
   }
 
@@ -804,7 +805,8 @@ transition: height 0.3s ease;
           !href.startsWith("tel:") &&
           !href.includes("webflow.io")
         ) {
-          fetch(href, { method: "HEAD", mode: "no-cors" })
+          //Removed temporarily due to Rate limit issue
+          /*fetch(href, { method: "HEAD", mode: "no-cors" })
             .then((response) => {
               if (
                 !response.ok &&
@@ -816,7 +818,7 @@ transition: height 0.3s ease;
             })
             .catch((error) => {
               this.addBrokenLink(element, "brokenLink");
-            });
+            });*/
         } else if (href === "#" || href === "") {
           this.addBrokenLink(element, "missingLink");
         } else if (href && href.includes("webflow.io")) {
@@ -1067,7 +1069,8 @@ transition: height 0.3s ease;
     this.checkMetaTags();
     this.checkPageLinks();
     this.checkForLoremIpsum();
-    this.checkSubdomainIndexing();
+    //Removed temporarily due to Rate limit issue
+    //this.checkSubdomainIndexing();
     this.checkLanguageCode();
   }
 
