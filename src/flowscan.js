@@ -64,13 +64,25 @@ class FlowScan {
       ).index(element);
       return `link-${linkClass}-${text}-${index}`;
     } else if (type === "imageAltText") {
-      const src = $(element).attr("src");
-      let fileName = src.split("/").pop();
+      const srcAttr = $(element).attr("src") || (element ? element.src : "");
+      let fileName;
+      if (srcAttr) {
+        fileName = srcAttr.split("/").pop();
+      } else {
+        const index = $("img").index(element);
+        fileName = `img-${index >= 0 ? index : "unknown"}`;
+      }
       fileName = fileName.slice(0, 15);
       return `alt-${fileName}`;
     } else if (type === "imageSize") {
-      const src = $(element).attr("src");
-      let fileName = src.split("/").pop();
+      const srcAttr = $(element).attr("src") || (element ? element.src : "");
+      let fileName;
+      if (srcAttr) {
+        fileName = srcAttr.split("/").pop();
+      } else {
+        const index = $("img").index(element);
+        fileName = `img-${index >= 0 ? index : "unknown"}`;
+      }
       fileName = fileName.slice(0, 15);
       return `image-${fileName}`;
     } else if (type === "loremIpsum") {
@@ -1199,7 +1211,7 @@ transition: height 0.3s ease;
   }
 
   init() {
-    console.info("Flow Scan v1.0.6");
+    console.info("Flow Scan v1.0.8");
 
     const isEditorMode =
       new URLSearchParams(window.location.search).get("edit") === "1";
