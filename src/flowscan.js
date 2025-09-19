@@ -1211,7 +1211,7 @@ transition: height 0.3s ease;
   }
 
   init() {
-    console.info("Flow Scan v1.0.8");
+    console.info("Flow Scan v1.0.9");
 
     const isEditorMode =
       new URLSearchParams(window.location.search).get("edit") === "1";
